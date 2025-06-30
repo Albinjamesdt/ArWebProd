@@ -44,7 +44,7 @@ export default function ProductionARViewer() {
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
-   const loadMarkers = async () => {
+  const loadMarkers = async () => {
     try {
       setLoading(true)
       const response = await fetch("/api/markers")
@@ -73,7 +73,6 @@ export default function ProductionARViewer() {
     }
   }
 
-
   const generateTargetsFile = async () => {
     try {
       const response = await fetch("/api/generate-targets-file", {
@@ -92,7 +91,7 @@ export default function ProductionARViewer() {
 
   const startCamera = async () => {
     try {
-       // Mobile-optimized camera constraints
+      // Mobile-optimized camera constraints
       const constraints = {
         video: {
           facingMode: "environment",
@@ -100,7 +99,7 @@ export default function ProductionARViewer() {
           height: isMobile ? { ideal: 1280, min: 640 } : { ideal: 720, min: 480 },
           aspectRatio: isMobile ? { ideal: 0.75 } : { ideal: 1.777 },
         },
-        audio: true,
+        audio: false, // Changed to false to avoid unnecessary audio access
       }
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
@@ -166,12 +165,10 @@ export default function ProductionARViewer() {
 
         const scene = document.createElement("a-scene")
 
-        // Mobile-optimized MindAR settings
+        // Use your actual targets file URL
         const mindARSettings = isMobile
-          ? "imageTargetSrc:  https://fydrjniligfkxnpahzto.supabase.co/storage/v1/object/sign/targets/targets.mind?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wNWVkNTBmMC1mOWQzLTQ2ZDUtOGQ3Ny1hZjBhNTJhNzBlNTQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ0YXJnZXRzL3RhcmdldHMubWluZCIsImlhdCI6MTc1MTAyNzYyOCwiZXhwIjoxNzUxNjMyNDI4fQ.bV_JAFzKGtLrl-nMuvM7-N-HsSNU7ZEFdQj96wR-iYg; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1; warmupTolerance: 2; missTolerance: 2;"
-          : "imageTargetSrc:  https://fydrjniligfkxnpahzto.supabase.co/storage/v1/object/sign/targets/targets.mind?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wNWVkNTBmMC1mOWQzLTQ2ZDUtOGQ3Ny1hZjBhNTJhNzBlNTQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ0YXJnZXRzL3RhcmdldHMubWluZCIsImlhdCI6MTc1MTAyNzYyOCwiZXhwIjoxNzUxNjMyNDI4fQ.bV_JAFzKGtLrl-nMuvM7-N-HsSNU7ZEFdQj96wR-iYg; autoStart: false; uiLoading: no; uiError: no; uiScanning: no;"
-           // Use production targets file
-        
+          ? "imageTargetSrc: https://fydrjniligfkxnpahzto.supabase.co/storage/v1/object/sign/targets/targets.mind?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wNWVkNTBmMC1mOWQzLTQ2ZDUtOGQ3Ny1hZjBhNTJhNzBlNTQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ0YXJnZXRzL3RhcmdldHMubWluZCIsImlhdCI6MTc1MTAyNzYyOCwiZXhwIjoxNzUxNjMyNDI4fQ.bV_JAFzKGtLrl-nMuvM7-N-HsSNU7ZEFdQj96wR-iYg; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1; warmupTolerance: 2; missTolerance: 2;"
+          : "imageTargetSrc: https://fydrjniligfkxnpahzto.supabase.co/storage/v1/object/sign/targets/targets.mind?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wNWVkNTBmMC1mOWQzLTQ2ZDUtOGQ3Ny1hZjBhNTJhNzBlNTQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ0YXJnZXRzL3RhcmdldHMubWluZCIsImlhdCI6MTc1MTAyNzYyOCwiZXhwIjoxNzUxNjMyNDI4fQ.bV_JAFzKGtLrl-nMuvM7-N-HsSNU7ZEFdQj96wR-iYg; autoStart: false; uiLoading: no; uiError: no; uiScanning: no;"
 
         scene.setAttribute("mindar-image", mindARSettings)
         scene.setAttribute("embedded", "true")
@@ -181,13 +178,15 @@ export default function ProductionARViewer() {
         if (isMobile) {
           scene.setAttribute("vr-mode-ui", "enabled: false")
           scene.setAttribute("device-orientation-permission-ui", "enabled: false")
+          scene.setAttribute("background", "color: transparent")
         }
 
-        scene.style.position = "absolute"
+        // Ensure scene fills the entire viewport
+        scene.style.position = "fixed"
         scene.style.top = "0"
         scene.style.left = "0"
-        scene.style.width = "100%"
-        scene.style.height = "100%"
+        scene.style.width = "100vw"
+        scene.style.height = "100vh"
         scene.style.zIndex = "2"
 
         const camera = document.createElement("a-camera")
@@ -197,6 +196,7 @@ export default function ProductionARViewer() {
         if (isMobile) {
           camera.setAttribute("look-controls", "enabled: false")
           camera.setAttribute("wasd-controls", "enabled: false")
+          camera.setAttribute("cursor", "rayOrigin: mouse")
         }
 
         scene.appendChild(camera)
@@ -245,11 +245,12 @@ export default function ProductionARViewer() {
 
           // Mobile-optimized positioning and sizing
           if (isMobile) {
-            // Adjust position for mobile - move video down and make it smaller
-            plane.setAttribute("position", "0 -0.1 0") // Move down slightly
-            plane.setAttribute("height", "0.45") // Smaller height
-            plane.setAttribute("width", "0.8") // Smaller width
-            plane.setAttribute("rotation", "-5 0 0") // Slight tilt to match mobile viewing angle
+            // Better mobile positioning
+            plane.setAttribute("position", "0 -0.2 0.05") // Move down and slightly forward
+            plane.setAttribute("height", "0.4") // Smaller height for mobile
+            plane.setAttribute("width", "0.7") // Smaller width for mobile
+            plane.setAttribute("rotation", "-8 0 0") // Slight tilt for mobile viewing
+            plane.setAttribute("scale", "1 1 1")
           } else {
             // Desktop positioning
             plane.setAttribute("position", "0 0 0")
@@ -258,8 +259,13 @@ export default function ProductionARViewer() {
             plane.setAttribute("rotation", "0 0 0")
           }
 
-          plane.setAttribute("material", "transparent: true; alphaTest: 0.1;")
+          plane.setAttribute("material", "transparent: true; alphaTest: 0.1; shader: flat;")
           plane.setAttribute("geometry", "primitive: plane")
+
+          // Add better visibility for mobile
+          if (isMobile) {
+            plane.setAttribute("material", "transparent: true; alphaTest: 0.1; shader: flat; side: double;")
+          }
 
           anchor.appendChild(plane)
 
@@ -284,9 +290,9 @@ export default function ProductionARViewer() {
               if (isMobile) {
                 // Mobile-specific play handling
                 videoElement.muted = true
+                videoElement.currentTime = 0
                 videoElement.play().catch((error) => {
                   console.log("Mobile video play failed, trying with user interaction:", error)
-                  // For mobile, sometimes we need user interaction
                   setTimeout(() => {
                     videoElement.play().catch(console.error)
                   }, 100)
@@ -331,8 +337,8 @@ export default function ProductionARViewer() {
                 setError("Failed to start AR system")
               }
             },
-            isMobile ? 2000 : 1500,
-          ) // Longer delay for mobile
+            isMobile ? 3000 : 1500,
+          )
         })
 
         arContainerRef.current.appendChild(scene)
@@ -346,7 +352,7 @@ export default function ProductionARViewer() {
   const showDetectionFeedback = (message: string) => {
     const feedback = document.createElement("div")
     feedback.style.position = "fixed"
-    feedback.style.top = isMobile ? "15%" : "20%"
+    feedback.style.top = isMobile ? "20%" : "20%"
     feedback.style.left = "50%"
     feedback.style.transform = "translateX(-50%)"
     feedback.style.background = "rgba(34, 197, 94, 0.95)"
@@ -412,8 +418,8 @@ export default function ProductionARViewer() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <Card className="w-full max-w-md bg-gray-800 border-gray-700">
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-900 z-50">
+        <Card className="w-full max-w-md bg-gray-800 border-gray-700 mx-4">
           <CardContent className="flex flex-col items-center justify-center p-8">
             <Loader className="w-8 h-8 animate-spin mb-4 text-blue-400" />
             <h3 className="text-white font-semibold mb-2">Loading WebAR</h3>
@@ -426,7 +432,7 @@ export default function ProductionARViewer() {
 
   if (markers.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-900 z-50 p-4">
         <Card className="w-full max-w-md bg-gray-800 border-gray-700">
           <CardContent className="flex flex-col items-center justify-center p-6">
             <Upload className="w-16 h-16 mb-6 text-gray-400" />
@@ -444,23 +450,38 @@ export default function ProductionARViewer() {
   }
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Camera Preview */}
-      <video
-        ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
-        playsInline
-        muted
-        webkit-playsinline="true"
-        style={{ zIndex: 1 }}
-      />
+    <div className="fixed inset-0 w-full h-full bg-black overflow-hidden">
+      {/* Camera Preview - Full width and height, only show before AR is initialized */}
+      {!arInitialized && (
+        <video
+          ref={videoRef}
+          className="fixed inset-0 w-full h-full object-cover"
+          playsInline
+          muted
+          webkit-playsinline="true"
+          style={{
+            zIndex: 1,
+            width: "100vw",
+            height: "100vh",
+            objectFit: "cover",
+          }}
+        />
+      )}
 
-      {/* AR Container */}
-      <div ref={arContainerRef} className="absolute inset-0 w-full h-full" style={{ zIndex: 2 }} />
+      {/* AR Container - Always present for AR scene */}
+      <div
+        ref={arContainerRef}
+        className="fixed inset-0 w-full h-full"
+        style={{
+          zIndex: 2,
+          width: "100vw",
+          height: "100vh",
+        }}
+      />
 
       {/* Loading States */}
       {!cameraReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-10 p-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/90 z-10 p-4">
           <Card className="bg-black/70 border-gray-700 w-full max-w-sm">
             <CardContent className="p-6 text-center">
               <Camera className="w-12 h-12 mx-auto mb-4 text-blue-400" />
@@ -472,7 +493,7 @@ export default function ProductionARViewer() {
       )}
 
       {cameraReady && !arInitialized && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10 p-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-10 p-4">
           <Card className="bg-black/70 border-gray-700 w-full max-w-sm">
             <CardContent className="p-6 text-center">
               <Loader className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-400" />
@@ -486,7 +507,7 @@ export default function ProductionARViewer() {
       )}
 
       {/* UI Overlay - Mobile Optimized */}
-      <div className={`absolute top-0 left-0 right-0 p-${isMobile ? "2" : "4"} z-20`}>
+      <div className={`fixed top-0 left-0 right-0 p-${isMobile ? "2" : "4"} z-20`}>
         <div className={`flex justify-between items-start gap-${isMobile ? "2" : "4"}`}>
           <Card className="bg-black/80 border-gray-700 flex-1">
             <CardContent className={`p-${isMobile ? "2" : "3"}`}>
@@ -522,7 +543,7 @@ export default function ProductionARViewer() {
       {/* Error Display */}
       {error && (
         <div
-          className={`absolute top-${isMobile ? "16" : "20"} left-${isMobile ? "2" : "4"} right-${isMobile ? "2" : "4"} z-20`}
+          className={`fixed top-${isMobile ? "16" : "20"} left-${isMobile ? "2" : "4"} right-${isMobile ? "2" : "4"} z-20`}
         >
           <Alert variant="destructive">
             <AlertCircle className="w-4 h-4" />
@@ -532,7 +553,7 @@ export default function ProductionARViewer() {
       )}
 
       {/* Bottom Status - Mobile Optimized */}
-      <div className={`absolute bottom-0 left-0 right-0 p-${isMobile ? "2" : "4"} z-20`}>
+      <div className={`fixed bottom-0 left-0 right-0 p-${isMobile ? "2" : "4"} z-20`}>
         {cameraReady && arInitialized && (
           <Card className="bg-black/80 border-gray-700">
             <CardContent className={`p-${isMobile ? "3" : "4"} text-center`}>
@@ -559,21 +580,21 @@ export default function ProductionARViewer() {
       {/* Active Content Overlay - Mobile Optimized */}
       {currentPlayingVideo && currentMarkerInfo && (
         <div
-          className={`absolute ${isMobile ? "top-1/3" : "top-1/2"} left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none px-4`}
+          className={`fixed ${isMobile ? "top-1/3" : "top-1/2"} left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none px-4`}
         >
-          {/* <Card className="bg-green-900/90 border-green-600">
-            <CardContent className={`p-${isMobile ? "3" : "4"} text-center`}>
+          <Card className="bg-green-900/90 border-green-600">
+            {/* <CardContent className={`p-${isMobile ? "3" : "4"} text-center`}>
               <Play className={`w-${isMobile ? "6" : "8"} h-${isMobile ? "6" : "8"} mx-auto mb-2 text-green-400`} />
               <h3 className={`text-white font-semibold text-${isMobile ? "sm" : "base"}`}>Content Playing</h3>
               <p className={`text-green-200 text-${isMobile ? "xs" : "sm"}`}>{currentMarkerInfo.title}</p>
-            </CardContent>
-          </Card> */}
+            </CardContent> */}
+          </Card>
         </div>
       )}
 
       {/* Scanning Viewfinder - Mobile Optimized */}
       {cameraReady && arInitialized && !currentPlayingVideo && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none px-4">
+        <div className="fixed inset-0 flex items-center justify-center z-10 pointer-events-none px-4">
           <div className={`${isMobile ? "w-64 h-40" : "w-72 h-48"} border-2 border-white/40 rounded-xl relative`}>
             <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-blue-400 rounded-tl-xl"></div>
             <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-blue-400 rounded-tr-xl"></div>
@@ -590,9 +611,9 @@ export default function ProductionARViewer() {
         </div>
       )}
 
-      {/* Markers Info Panel - Mobile Optimized */}
+      {/* Markers Info Panel - Desktop Only */}
       {markers.length > 0 && cameraReady && arInitialized && !isMobile && (
-        <div className="absolute top-20 right-4 z-20">
+        <div className="fixed top-20 right-4 z-20">
           <Card className="bg-black/80 border-gray-700 max-w-xs">
             <CardContent className="p-3">
               <h4 className="text-white font-semibold text-sm mb-2">Available Content</h4>

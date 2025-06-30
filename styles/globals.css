@@ -63,21 +63,40 @@
   * {
     @apply border-border;
   }
+
+  html,
   body {
     @apply bg-background text-foreground;
     margin: 0;
     padding: 0;
     overflow: hidden;
-  }
-
-  html {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
   }
 }
 
-/* Mobile-specific AR optimizations */
+/* Full viewport optimization for all devices */
+.ar-viewer-container {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* Camera video full-width optimization */
+video {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+/* Mobile-specific optimizations */
 @media (max-width: 768px) {
   /* Prevent zoom on input focus */
   input[type="text"],
@@ -99,14 +118,12 @@
     position: fixed !important;
   }
 
-  /* Mobile AR container optimization */
-  .ar-container {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
+  /* Mobile video optimization */
+  video {
     width: 100vw !important;
     height: 100vh !important;
-    overflow: hidden !important;
+    object-fit: cover !important;
+    object-position: center !important;
   }
 
   /* A-Frame scene mobile optimization */
@@ -120,21 +137,27 @@
     padding: 0 !important;
   }
 
-  /* Hide any unwanted video elements */
-  video:not([id*="productionVideo"]) {
-    position: absolute !important;
-    top: -9999px !important;
-    left: -9999px !important;
-    width: 1px !important;
-    height: 1px !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    visibility: hidden !important;
-  }
-
   /* Ensure AR videos are properly positioned */
   a-plane {
     transform-origin: center center !important;
+  }
+}
+
+/* Tablet optimization */
+@media (min-width: 769px) and (max-width: 1024px) {
+  video {
+    width: 100vw !important;
+    height: 100vh !important;
+    object-fit: cover !important;
+  }
+}
+
+/* Desktop optimization */
+@media (min-width: 1025px) {
+  video {
+    width: 100vw !important;
+    height: 100vh !important;
+    object-fit: cover !important;
   }
 }
 
@@ -161,8 +184,8 @@
   }
 }
 
-/* AR-specific mobile optimizations */
-.mobile-ar-optimized {
+/* AR-specific optimizations */
+.ar-optimized {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
@@ -173,13 +196,6 @@
   -webkit-overflow-scrolling: touch;
   -webkit-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
-}
-
-/* Hide canvas elements that might be causing issues */
-@media (max-width: 768px) {
-  canvas:not([data-aframe-canvas]) {
-    display: none !important;
-  }
 }
 
 /* Ensure proper z-index stacking */
@@ -195,4 +211,15 @@
 
 .ar-camera-feed {
   z-index: 1 !important;
+}
+
+/* Fix for small screens and mobile devices */
+@media (max-width: 480px) {
+  video {
+    width: 100vw !important;
+    height: 100vh !important;
+    object-fit: cover !important;
+    min-width: 100vw !important;
+    min-height: 100vh !important;
+  }
 }
