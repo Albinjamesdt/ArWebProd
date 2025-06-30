@@ -474,13 +474,13 @@ export default function ProductionARViewer() {
       {/* Active Content Overlay */}
       {currentPlayingVideo && currentMarkerInfo && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
-          <Card className="bg-green-900/90 border-green-600">
-            <CardContent className="p-4 text-center">
+          {/* <Card className="bg-green-900/90 border-green-600">
+            <CardContent className="p-4 text-center"> 
               <Play className="w-8 h-8 mx-auto mb-2 text-green-400" />
               <h3 className="text-white font-semibold">Content Playing</h3>
               <p className="text-green-200 text-sm">{currentMarkerInfo.title}</p>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       )}
 
