@@ -44,7 +44,7 @@ export default function ProductionARViewer() {
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
-  const loadMarkers = async () => {
+   const loadMarkers = async () => {
     try {
       setLoading(true)
       const response = await fetch("/api/markers")
@@ -73,6 +73,7 @@ export default function ProductionARViewer() {
     }
   }
 
+
   const generateTargetsFile = async () => {
     try {
       const response = await fetch("/api/generate-targets-file", {
@@ -91,7 +92,7 @@ export default function ProductionARViewer() {
 
   const startCamera = async () => {
     try {
-      // Mobile-optimized camera constraints
+       // Mobile-optimized camera constraints
       const constraints = {
         video: {
           facingMode: "environment",
@@ -99,7 +100,7 @@ export default function ProductionARViewer() {
           height: isMobile ? { ideal: 1280, min: 640 } : { ideal: 720, min: 480 },
           aspectRatio: isMobile ? { ideal: 0.75 } : { ideal: 1.777 },
         },
-        audio: false,
+        audio: true,
       }
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
@@ -560,13 +561,13 @@ export default function ProductionARViewer() {
         <div
           className={`absolute ${isMobile ? "top-1/3" : "top-1/2"} left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none px-4`}
         >
-          <Card className="bg-green-900/90 border-green-600">
+          {/* <Card className="bg-green-900/90 border-green-600">
             <CardContent className={`p-${isMobile ? "3" : "4"} text-center`}>
               <Play className={`w-${isMobile ? "6" : "8"} h-${isMobile ? "6" : "8"} mx-auto mb-2 text-green-400`} />
               <h3 className={`text-white font-semibold text-${isMobile ? "sm" : "base"}`}>Content Playing</h3>
               <p className={`text-green-200 text-${isMobile ? "xs" : "sm"}`}>{currentMarkerInfo.title}</p>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       )}
 
