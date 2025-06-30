@@ -1,5 +1,4 @@
 import ProductionARViewer from "@/components/production-ar-viewer"
-
 export default function HomePage() {
   return <ProductionARViewer />
 }
