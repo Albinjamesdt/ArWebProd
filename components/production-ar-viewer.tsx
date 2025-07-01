@@ -126,7 +126,7 @@ export default function ProductionARViewer() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.playsInline = true;
-        videoRef.current.muted = true;
+        videoRef.current.muted = false;
 
         // Mobile-specific video settings
         if (isMobile) {
@@ -240,11 +240,11 @@ export default function ProductionARViewer() {
           // Mobile-specific video attributes
           if (isMobile) {
             video.setAttribute("webkit-playsinline", "true");
-            video.setAttribute("muted", "true");
+            video.setAttribute("muted", "false");
             video.setAttribute("autoplay", "false");
           }
 
-          video.muted = true;
+          video.muted = false;
 
           video.onloadeddata = () => {
             console.log(`Production video loaded: ${marker.title}`);
@@ -307,7 +307,7 @@ export default function ProductionARViewer() {
             if (videoElement) {
               if (isMobile) {
                 // Mobile-specific play handling
-                videoElement.muted = true;
+                videoElement.muted = false;
                 videoElement.play().catch((error) => {
                   console.log(
                     "Mobile video play failed, trying with user interaction:",
@@ -351,13 +351,15 @@ export default function ProductionARViewer() {
           setTimeout(
             () => {
               try {
-                const aframeScene = scene;
+                const aframeScene = scene as any;
                 if (
                   aframeScene &&
                   aframeScene.systems &&
                   aframeScene.systems["mindar-image-system"]
                 ) {
-                  aframeScene.systems["mindar-image-system"].start();
+                  (aframeScene.systems["mindar-image-system"] as {
+                    start: () => void;
+                  }).start();
                 }
               } catch (startError) {
                 console.error("Error starting production AR:", startError);
@@ -490,8 +492,7 @@ export default function ProductionARViewer() {
       <video
         ref={videoRef}
         className="absolute inset-0 w-full h-full object-cover"
-        playsInline
-        muted
+        playsInline 
         webkit-playsinline="true"
         style={{ zIndex: 1 }}
       />
