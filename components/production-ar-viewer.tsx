@@ -126,7 +126,7 @@ export default function ProductionARViewer() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.playsInline = true;
-        videoRef.current.muted = false;
+        videoRef.current.muted = true;
 
         // Mobile-specific video settings
         if (isMobile) {
@@ -237,14 +237,15 @@ export default function ProductionARViewer() {
           video.setAttribute("crossorigin", "anonymous");
           video.setAttribute("playsinline", "true");
 
+          // Always start muted
+          video.muted = true;
+          video.setAttribute("muted", "true");
+
           // Mobile-specific video attributes
           if (isMobile) {
             video.setAttribute("webkit-playsinline", "true");
-            video.setAttribute("muted", "false");
             video.setAttribute("autoplay", "false");
           }
-
-          video.muted = false;
 
           video.onloadeddata = () => {
             console.log(`Production video loaded: ${marker.title}`);
@@ -305,15 +306,11 @@ export default function ProductionARViewer() {
               `productionVideo_${index}`
             ) as HTMLVideoElement;
             if (videoElement) {
+              // Unmute only when marker is detected
+              videoElement.muted = false;
+              videoElement.removeAttribute("muted");
               if (isMobile) {
-                // Mobile-specific play handling
-                videoElement.muted = false;
                 videoElement.play().catch((error) => {
-                  console.log(
-                    "Mobile video play failed, trying with user interaction:",
-                    error
-                  );
-                  // For mobile, sometimes we need user interaction
                   setTimeout(() => {
                     videoElement.play().catch(console.error);
                   }, 100);
@@ -337,6 +334,9 @@ export default function ProductionARViewer() {
             ) as HTMLVideoElement;
             if (videoElement) {
               videoElement.pause();
+              // Mute again when marker is lost
+              videoElement.muted = true;
+              videoElement.setAttribute("muted", "true");
             }
           });
 
