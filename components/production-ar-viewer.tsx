@@ -237,14 +237,15 @@ export default function ProductionARViewer() {
           video.setAttribute("crossorigin", "anonymous");
           video.setAttribute("playsinline", "true");
 
-          // Always start muted on all devices (mobile and desktop)
+          // Always start muted
           video.muted = true;
           video.setAttribute("muted", "true");
 
-          // Mobile-specific video attributes (no autoplay attribute)
+          // Mobile-specific video attributes
           if (isMobile) {
             video.setAttribute("webkit-playsinline", "true");
-            // Do NOT set autoplay="false"; just omit autoplay entirely
+            video.setAttribute("playsinline", "true");
+            // Do NOT set autoplay to false, let AR logic handle playback
           }
 
           video.onloadeddata = () => {
