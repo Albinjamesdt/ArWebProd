@@ -23,6 +23,7 @@ export interface MarkerWithUrls {
   id: string
   title: string
   markerImageUrl: string
-  videoUrl: string
+  videoUrl: string,
+  targetUrl?: string,
   createdAt: string
 }

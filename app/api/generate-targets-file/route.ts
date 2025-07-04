@@ -1,77 +1,156 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { supabaseAdmin, supabaseClient } from "@/lib/supabase-client"
+import { type NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin, supabaseClient } from "@/lib/supabase-client";
+import fs from "fs";
+import path from "path";
+import { generateMindFile } from "../../../scripts/generate-mind-file";
 
 export async function POST(request: NextRequest) {
   try {
-    // Fetch all markers
-    const { data: markers, error } = await supabaseAdmin
-      .from("markers")
-      .select("id, title, marker_image_path")
-      .order("created_at", { ascending: true })
-
-    if (error) throw error
-
-    if (!markers || markers.length === 0) {
-      return NextResponse.json({ error: "No markers found" }, { status: 404 })
+    // Check if the request is multipart/form-data
+    const contentType = request.headers.get("content-type") || "";
+    if (!contentType.includes("multipart/form-data")) {
+      return NextResponse.json(
+        { success: false, message: "Content-Type must be multipart/form-data" },
+        { status: 400 }
+      );
     }
 
-    // Get public URLs for all marker images
-    const markerImages = await Promise.all(
-      markers.map(async (marker, index) => {
-        const publicUrl = supabaseClient.storage.from("marker-images").getPublicUrl(marker.marker_image_path)
-          .data.publicUrl
+    // Parse the form data
+    const formData = await request.formData();
+    const markerImages = formData.getAll("markerImages") as File[];
 
-        // Download the image to process it
-        try {
-          const imageResponse = await fetch(publicUrl)
-          const imageBuffer = await imageResponse.arrayBuffer()
-
-          return {
-            id: marker.id,
-            title: marker.title,
-            imageUrl: publicUrl,
-            imageBuffer: Buffer.from(imageBuffer),
-            targetIndex: index,
-            fileName: `marker-${index}-${marker.title.replace(/\s+/g, "-")}.jpg`,
-          }
-        } catch (err) {
-          console.error(`Failed to download marker image ${marker.id}:`, err)
-          return null
-        }
-      }),
-    )
-
-    const validMarkers = markerImages.filter(Boolean)
-
-    if (validMarkers.length === 0) {
-      return NextResponse.json({ error: "No valid marker images found" }, { status: 400 })
+    if (!markerImages || markerImages.length === 0) {
+      return NextResponse.json(
+        { success: false, message: "No marker images uploaded" },
+        { status: 400 }
+      );
     }
 
-    // For now, we'll return the marker data and instructions
-    // In a full implementation, you would use the MindAR compiler here
-    // Since we can't run the actual compiler in the browser, we'll provide the data needed
+    // Create temp directory if it doesn't exist
+    const tempDir = path.join(process.cwd(), "temp");
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const mindFiles: { marker: string; mindFileUrl: string; uploadPath: string }[] = [];
+
+    // Prepare all files for processing
+    const tempFiles: { tempImagePath: string; markerName: string; file: File }[] = [];
+
+    for (const file of markerImages) {
+      const tempImagePath = path.join(tempDir, `${Date.now()}-${file.name}`);
+      const arrayBuffer = await file.arrayBuffer();
+      fs.writeFileSync(tempImagePath, Buffer.from(arrayBuffer));
+      const markerName = path.parse(file.name).name;
+      tempFiles.push({ tempImagePath, markerName, file });
+    }
+
+    // delete any existing targets.mind file from supabase storage
+    const { data: existingFiles, error: listError } = await supabaseAdmin.storage
+      .from("targets")
+      .list("", {
+        limit: 1,
+        offset: 0,
+        sortBy: { column: "name", order: "desc" },
+      });
+
+    if (listError) {
+      throw new Error(`Supabase list error: ${listError.message}`);
+    } 
+
+    if (existingFiles.length > 0) {
+      const existingFileName = existingFiles[0].name;
+      const { error: deleteError } = await supabaseAdmin.storage
+        .from("targets")
+        .remove([existingFileName]);
+      if (deleteError) {
+        throw new Error(`Supabase delete error: ${deleteError.message}`);
+      }
+    }
+
+    // Generate a single mind file from all marker images
+    const tempImagePaths = tempFiles.map(f => f.tempImagePath);
+    const mindFilePath = await generateMindFile(tempImagePaths, "targets.mind");
+
+    // Upload the combined mind file
+    const mindFileBuffer = fs.readFileSync(mindFilePath);
+    const { data: uploadData, error: uploadError } =
+      await supabaseAdmin.storage
+      .from("targets")
+      .upload("targets.mind", mindFileBuffer, {
+        contentType: "application/octet-stream",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      // Clean up temp files before throwing
+      tempFiles.forEach(f => fs.unlinkSync(f.tempImagePath));
+      fs.unlinkSync(mindFilePath);
+      throw new Error(`Supabase upload failed: ${uploadError.message}`);
+    }
+
+    // Get public URL
+    const { data: publicUrlData } = supabaseClient.storage
+      .from("targets")
+      .getPublicUrl("targets.mind");
+
+    // Clean up temp files
+    tempFiles.forEach(f => fs.unlinkSync(f.tempImagePath));
+    fs.unlinkSync(mindFilePath);
+
+    mindFiles.push({
+      marker: "all",
+      mindFileUrl: publicUrlData.publicUrl,
+      uploadPath: uploadData.path,
+    });
 
     return NextResponse.json({
       success: true,
-      markersCount: validMarkers.length,
-      markers: validMarkers.map((m) => ({
-        id: m?.id,
-        title: m?.title,
-        imageUrl: m?.imageUrl,
-        targetIndex: m?.targetIndex,
-        fileName: m?.fileName,
-      })),
-      message: "Marker data prepared for targets.mind generation",
-      instructions: [
-        "1. The system has prepared your marker images for processing",
-        "2. A targets.mind file will be generated automatically",
-        "3. Your AR viewer will use this file for detection",
-        "4. Each marker will trigger its associated video",
-      ],
-      targetFileUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/targets/custom-targets.mind`,
-    })
+      message: "Targets files generated and uploaded successfully!",
+      files: mindFiles,
+      markersProcessed: mindFiles.length,
+    });
   } catch (err: any) {
-    console.error("Generate targets file error:", err)
-    return NextResponse.json({ error: "Failed to generate targets file", detail: String(err) }, { status: 500 })
+    console.error("Generate targets error:", err);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to generate targets",
+        detail: String(err),
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    // Fetch all targets files from Supabase storage
+    const { data, error } = await supabaseAdmin.storage
+      .from("targets")
+      .list("", {
+        limit: 100,
+        offset: 0,
+        sortBy: { column: "name", order: "desc" },
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    const targetsFiles = data.map((file) => ({
+      name: file.name,
+      publicUrl: supabaseClient.storage.from("targets").getPublicUrl(file.name)
+        .data.publicUrl,
+      updatedAt: file.updated_at,
+    }));
+
+    return NextResponse.json({ publicUrl: targetsFiles[0]?.publicUrl });
+  } catch (err: any) {
+    console.error("GET /api/generate-targets-file error:", err);
+    return NextResponse.json(
+      { error: "Failed to fetch targets files", detail: String(err) },
+      { status: 500 }
+    );
   }
 }
