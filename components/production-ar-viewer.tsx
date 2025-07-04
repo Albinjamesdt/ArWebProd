@@ -4,16 +4,16 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import {
   Camera,
   Scan,
   AlertCircle,
   CheckCircle,
-  Play,
+  // Play,
   Loader,
   Upload,
-  Zap,
+  // Zap,
 } from "lucide-react";
 import type { MarkerWithUrls } from "@/lib/supabase-client";
 
@@ -116,7 +116,7 @@ export default function ProductionARViewer() {
           width: { ideal: 1280, max: 1920, min: 640 },
           height: { ideal: 720, max: 1080, min: 480 },
         },
-        audio: false,
+        audio: true,
       };
 
       console.log("Starting camera with constraints:", constraints);
@@ -128,13 +128,7 @@ export default function ProductionARViewer() {
         videoRef.current.setAttribute("webkit-playsinline", "true");
         videoRef.current.setAttribute("playsinline", "true");
         // Fix: Always mute and autoplay for mobile to allow camera preview
-        if (isMobile) {
-          videoRef.current.muted = true;
-          videoRef.current.setAttribute("autoplay", "true");
-        } else {
-          videoRef.current.muted = false;
-        }
-
+        
         if (isMobile) {
           videoRef.current.style.position = "fixed";
           videoRef.current.style.top = "0";
@@ -221,7 +215,7 @@ export default function ProductionARViewer() {
             "device-orientation-permission-ui",
             "enabled: false"
           );
-          scene.setAttribute("background", "color: transparent");
+           
         }
 
         scene.style.position = "fixed";
