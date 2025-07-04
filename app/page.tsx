@@ -5,7 +5,7 @@ export default function HomePage() {
 }
 
 export const metadata = {
-  title: "My Page",
+  title: "WEBAR",
 };
 
 export const viewport = {

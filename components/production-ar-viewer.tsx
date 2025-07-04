@@ -125,9 +125,15 @@ export default function ProductionARViewer() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.playsInline = true;
-        videoRef.current.muted = false;
         videoRef.current.setAttribute("webkit-playsinline", "true");
         videoRef.current.setAttribute("playsinline", "true");
+        // Fix: Always mute and autoplay for mobile to allow camera preview
+        if (isMobile) {
+          videoRef.current.muted = true;
+          videoRef.current.setAttribute("autoplay", "true");
+        } else {
+          videoRef.current.muted = false;
+        }
 
         if (isMobile) {
           videoRef.current.style.position = "fixed";
@@ -247,14 +253,12 @@ export default function ProductionARViewer() {
           video.setAttribute("loop", "true");
           video.setAttribute("crossorigin", "anonymous");
           video.setAttribute("playsinline", "true");
-
+          
           if (isMobile) {
             video.setAttribute("webkit-playsinline", "true");
-            video.setAttribute("muted", "false");
             video.setAttribute("autoplay", "false");
+            video.muted = true;
           }
-
-          video.muted = false;
 
           video.onloadeddata = () => {
             console.log(`Video loaded for marker ${index}: ${marker.title}`);
@@ -545,7 +549,7 @@ export default function ProductionARViewer() {
       <video
         ref={videoRef}
         playsInline
-        // muted
+        muted
         webkit-playsinline="true"
         style={{
           position: "fixed",
@@ -687,7 +691,7 @@ export default function ProductionARViewer() {
             isMobile ? "top-1/4" : "top-1/3"
           } left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none px-4`}
         >
-          <Card className="bg-green-900/90 border-green-600">
+          {/* <Card className="bg-green-900/90 border-green-600">
             <CardContent className={`p-${isMobile ? "3" : "4"} text-center`}>
               <Play
                 className={`w-${isMobile ? "6" : "8"} h-${
@@ -721,7 +725,7 @@ export default function ProductionARViewer() {
                 )}
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       )}
 
