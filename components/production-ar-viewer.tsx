@@ -92,22 +92,6 @@ export default function ProductionARViewer() {
     }
   };
 
-  // const generateTargetsFile = async () => {
-  //   try {
-  //     const response = await fetch("/api/generate-targets-file", {
-  //       method: "POST",
-  //     });
-
-  //     if (response.ok) {
-  //       const result = await response.json();
-  //       console.log("Multi-marker targets generated:", result);
-  //       setTargetsGenerated(true);
-  //     }
-  //   } catch (err) {
-  //     console.error("Target generation error:", err);
-  //   }
-  // };
-
   const startCamera = async () => {
     try {
       const constraints = {
@@ -128,7 +112,7 @@ export default function ProductionARViewer() {
         videoRef.current.setAttribute("webkit-playsinline", "true");
         videoRef.current.setAttribute("playsinline", "true");
         // Fix: Always mute and autoplay for mobile to allow camera preview
-        
+
         if (isMobile) {
           videoRef.current.style.position = "fixed";
           videoRef.current.style.top = "0";
@@ -215,7 +199,6 @@ export default function ProductionARViewer() {
             "device-orientation-permission-ui",
             "enabled: false"
           );
-           
         }
 
         scene.style.position = "fixed";
@@ -247,7 +230,7 @@ export default function ProductionARViewer() {
           video.setAttribute("loop", "true");
           video.setAttribute("crossorigin", "anonymous");
           video.setAttribute("playsinline", "true");
-          
+
           if (isMobile) {
             video.setAttribute("webkit-playsinline", "true");
             video.setAttribute("autoplay", "false");
@@ -521,16 +504,6 @@ export default function ProductionARViewer() {
             <h3 className="text-white font-semibold mb-3 text-xl text-center">
               No Content Available
             </h3>
-            {/* <p className="text-gray-400 text-center mb-6 text-sm">
-              Please upload your marker images and videos to start using the
-              multi-marker AR experience.
-            </p>
-            <Button
-              onClick={() => (window.location.href = "/admin")}
-              className="w-full bg-blue-600 hover:bg-blue-700"
-            >
-              Go to Admin Panel
-            </Button> */}
           </CardContent>
         </Card>
       </div>

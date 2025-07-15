@@ -33,13 +33,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       markers: markerData,
-      message: "Target data prepared. Use MindAR compiler to generate targets.mind file.",
-      instructions: [
-        "1. Download marker images from the provided URLs",
-        "2. Use MindAR image target generator: npm install -g mindar-image-target-generator",
-        "3. Run: mindar-image-target-generator -i image1.jpg image2.jpg -o targets.mind",
-        "4. Upload targets.mind to Supabase Storage bucket 'targets'",
-      ],
+      // message: "Target data prepared. Use MindAR compiler to generate targets.mind file.",
+      // instructions: [
+      //   "1. Download marker images from the provided URLs",
+      //   "2. Use MindAR image target generator: npm install -g mindar-image-target-generator",
+      //   "3. Run: mindar-image-target-generator -i image1.jpg image2.jpg -o targets.mind",
+      //   "4. Upload targets.mind to Supabase Storage bucket 'targets'",
+      // ],
     })
   } catch (err: any) {
     console.error("Generate targets error:", err)

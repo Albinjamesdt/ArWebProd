@@ -1,3 +1,4 @@
+// components\admin-panel.tsx
 "use client"
 
 import type React from "react"
@@ -18,26 +19,44 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Trash2, Eye, Upload, BarChart3, Zap, ExternalLink, Copy, Loader } from "lucide-react"
 import type { MarkerWithUrls } from "@/lib/supabase-client"
+import { useSession, signOut } from "next-auth/react"
+import { useRouter } from "next/navigation"
+ 
+ 
 
-export default function AdminPanel() {
+export default function AdminDashboard() {
+   // 1) ALL hooks at the top, unconditionally:
+  const { data: session, status } = useSession()
   const [markers, setMarkers] = useState<MarkerWithUrls[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [password, setPassword] = useState("")
   const [targetInstructions, setTargetInstructions] = useState<any>(null)
-  const [uploadProgress, setUploadProgress] = useState<string>("")
-
-  const handleLogin = () => {
-    if (password === "admin123") {
-      setIsAuthenticated(true)
-      setError(null)
-    } else {
-      setError("Invalid password")
+  const [uploadProgress, setUploadProgress] = useState("")
+  const router=useRouter()
+// 2) Redirect if unauthenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/admin");
     }
+  }, [status, router]);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      loadMarkers()
+    }
+  }, [status])
+
+  // 2) Early UI guards, *after* your hooks:
+  if (status === "loading") {
+    return <div className="text-center mt-20">Loading panel…</div>
   }
+  if (!session) {
+    // you can show a redirect spinner or just null
+    return null
+  }
+
 
   const loadMarkers = async () => {
     try {
@@ -134,6 +153,12 @@ export default function AdminPanel() {
       setUploadProgress("Refreshing content...")
       await loadMarkers()
 
+      if (markers.length > 0) {
+        // Step 3: Generate targets after upload
+        console.log("Generating targets after upload...")
+        await generateTargetsAfterUpload()
+      }
+
       setSuccess(`Marker "${data.title}" uploaded successfully!`)
       ;(event.target as HTMLFormElement).reset()
     } catch (err) {
@@ -167,64 +192,12 @@ export default function AdminPanel() {
       setSuccess(`Marker "${title}" deleted successfully!`)
       await loadMarkers()
 
-      // Auto-regenerate targets after deletion if there are still markers
-      // if (markers.length > 1) {
-      //   const lastMarker = markers.filter((m) => m.id !== id).slice(-1)[0]
-      //   if (lastMarker) {
-      //     await generateTargetsAfterUpload(lastMarker.id)
-      //   }
-      // }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Delete failed")
       console.error("Delete error:", err)
     }
   }
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadMarkers()
-    }
-  }, [isAuthenticated])
-
-  useEffect(() => {
-       if (markers.length) {
-        generateTargetsAfterUpload()
-       }
-  }, [markers])
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Admin Access</CardTitle>
-            <CardDescription>Enter password to manage AR content</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleLogin()}
-                placeholder="Enter admin password"
-              />
-            </div>
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <Button onClick={handleLogin} className="w-full">
-              Login
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -238,7 +211,7 @@ export default function AdminPanel() {
             <Button onClick={() => window.open("/", "_blank")} variant="outline">
               View AR Experience
             </Button>
-            <Button onClick={() => setIsAuthenticated(false)} variant="outline">
+            <Button onClick={() => signOut({ callbackUrl: "/admin" })} variant="outline">
               Logout
             </Button>
           </div>
