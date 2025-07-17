@@ -1,11 +1,18 @@
+// app\api\generate-targets-file\route.ts
 import { type NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, supabaseClient } from "@/lib/supabase-client";
 import fs from "fs";
 import path from "path";
 import { generateMindFile } from "../../../scripts/generate-mind-file";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
     // Check if the request is multipart/form-data
     const contentType = request.headers.get("content-type") || "";
     if (!contentType.includes("multipart/form-data")) {
@@ -153,4 +160,6 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+  
 }
+ 
