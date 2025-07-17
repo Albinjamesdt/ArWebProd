@@ -20,8 +20,8 @@ async function generateMindFile(
   console.log("🚀 Starting MindAR compilation process...");
 
   const browser = await puppeteer.launch({
-    headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    headless: false,
   });
 
   const page = await browser.newPage();
@@ -72,32 +72,36 @@ async function generateMindFile(
         timeout: 10000,
       });
       console.log("✅ Loading indicator appeared");
+      await page.screenshot({ path: "loading_indicator.png" });
     } catch (e) {
       console.log("ℹ️ Loading indicator not found, continuing...");
     }
 
     try {
-      await page.waitForSelector("div.padding-vert--md>div", {
-        hidden: true,
+      await page.waitForSelector("div.padding-vert--md>button", {
+        visible: true,
         timeout: 120000, // 2 minutes timeout
       });
       console.log("✅ Compilation process completed");
     } catch (e) {
       console.log("⚠️ Loading indicator timeout, checking for completion...");
     }
+    await page.screenshot({ path: "loading_indicator_timeout.png" });
 
     // Wait for compile button to reappear (compilation finished)
     try {
-      await page.waitForSelector(".startButton_OY2G", {
+      await page.waitForSelector(".button.button--primary.startButton_OY2G", {
         visible: true,
         timeout: 60000,
       });
       console.log("✅ Compilation finished, download ready");
+      await page.screenshot({ path: "download_ready.png" });
 
       // Click to download
       console.log("💾 Initiating download...");
-      await page.click(".startButton_OY2G");
-
+      await page.screenshot({ path: "download_started.png" });
+      await page.click(".button.button--primary.startButton_OY2G");
+      await page.screenshot({ path: "download_ended.png" });
       // Wait for download to complete
       const downloadFile = path.join(downloadPath, outputFileName);
       const tempDownloadFile = downloadFile + ".crdownload";
