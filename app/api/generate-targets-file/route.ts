@@ -9,10 +9,10 @@ import { authOptions } from "../auth/[...nextauth]/route";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+    // const session = await getServerSession(authOptions)
+  // if (!session) {
+  //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  // }
     // Check if the request is multipart/form-data
     const contentType = request.headers.get("content-type") || "";
     if (!contentType.includes("multipart/form-data")) {

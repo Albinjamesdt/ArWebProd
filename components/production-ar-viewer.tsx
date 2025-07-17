@@ -3,17 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-// import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge"; 
 import {
   Camera,
   Scan,
   AlertCircle,
   CheckCircle,
-  // Play,
   Loader,
   Upload,
-  // Zap,
 } from "lucide-react";
 import type { MarkerWithUrls } from "@/lib/supabase-client";
 
