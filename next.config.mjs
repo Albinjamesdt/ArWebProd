@@ -8,12 +8,6 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
-  },
-   api: {
-    // this applies to ALL API routes, pages *and* app-router
-    bodyParser: {
-      sizeLimit: '500mb',
-    },
   }
 }
 
