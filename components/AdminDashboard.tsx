@@ -36,16 +36,16 @@ export default function AdminDashboard() {
   const [uploadProgress, setUploadProgress] = useState("")
   const router=useRouter()
 // 2) Redirect if unauthenticated
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.replace("/admin");
-    }
-  }, [status, router]);
+  // useEffect(() => {
+  //   if (status === "unauthenticated") {
+  //     router.replace("/admin");
+  //   }
+  // }, [status, router]);
 
   useEffect(() => {
-    if (status === "authenticated") {
+    // if (status === "authenticated") {
       loadMarkers()
-    }
+    // }
   }, [status])
 
   // 2) Early UI guards, *after* your hooks:
