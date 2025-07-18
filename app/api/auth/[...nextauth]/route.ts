@@ -47,6 +47,10 @@ console.log("adminUser.hashedPassword:",adminUser.hashedPassword);
       },
     }),
   ],
+  pages: {
+    signIn:    "/admin",            // your login page
+    error:     "/admin?error=",     // catch-all for errors
+  },
   session: { strategy: "jwt" as const },
   secret: process.env.NEXTAUTH_SECRET,
   debug: true,  
