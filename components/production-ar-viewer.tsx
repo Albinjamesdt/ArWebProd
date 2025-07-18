@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge"; 
+import { Badge } from "@/components/ui/badge";
 import {
   Camera,
   Scan,
@@ -579,21 +579,18 @@ export default function ProductionARViewer() {
         className={`fixed top-0 left-0 right-0 p-${isMobile ? "2" : "4"} z-20`}
       >
         <div
-          className={`flex justify-between items-start gap-${
-            isMobile ? "2" : "4"
-          }`}
+          className={`flex justify-between items-start gap-${isMobile ? "2" : "4"
+            }`}
         >
           <Card className="bg-transparent border-none flex-1">
             <CardContent className={`p-${isMobile ? "2" : "3"}`}>
               <div
-                className={`flex items-center gap-2 text-${
-                  isMobile ? "xs" : "sm"
-                } text-white`}
+                className={`flex items-center gap-2 text-${isMobile ? "xs" : "sm"
+                  } text-white`}
               >
                 <Camera
-                  className={`w-${isMobile ? "3" : "4"} h-${
-                    isMobile ? "3" : "4"
-                  }`}
+                  className={`w-${isMobile ? "3" : "4"} h-${isMobile ? "3" : "4"
+                    }`}
                 />
                 {/* <span>Multi-Marker WebAR</span> */}
                 {cameraReady && arInitialized && (
@@ -609,15 +606,13 @@ export default function ProductionARViewer() {
           <Card className="bg-black/80 border-gray-700">
             <CardContent className={`p-${isMobile ? "2" : "3"}`}>
               <div
-                className={`text-${
-                  isMobile ? "xs" : "sm"
-                } text-white text-right`}
+                className={`text-${isMobile ? "xs" : "sm"
+                  } text-white text-right`}
               >
                 <div className="flex items-center gap-1 justify-end mb-1">
                   <Scan
-                    className={`w-${isMobile ? "3" : "4"} h-${
-                      isMobile ? "3" : "4"
-                    }`}
+                    className={`w-${isMobile ? "3" : "4"} h-${isMobile ? "3" : "4"
+                      }`}
                   />
                   <span>{markers.length}</span>
                 </div>
@@ -635,9 +630,8 @@ export default function ProductionARViewer() {
       {/* Error Display */}
       {error && (
         <div
-          className={`fixed top-${isMobile ? "16" : "20"} left-${
-            isMobile ? "2" : "4"
-          } right-${isMobile ? "2" : "4"} z-20`}
+          className={`fixed top-${isMobile ? "16" : "20"} left-${isMobile ? "2" : "4"
+            } right-${isMobile ? "2" : "4"} z-20`}
         >
           <Alert variant="destructive">
             <AlertCircle className="w-4 h-4" />
@@ -651,9 +645,8 @@ export default function ProductionARViewer() {
       {/* Active Markers Display */}
       {currentMarkerInfo.length > 0 && (
         <div
-          className={`fixed ${
-            isMobile ? "top-1/4" : "top-1/3"
-          } left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none px-4`}
+          className={`fixed ${isMobile ? "top-1/4" : "top-1/3"
+            } left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none px-4`}
         >
           {/* <Card className="bg-green-900/90 border-green-600">
             <CardContent className={`p-${isMobile ? "3" : "4"} text-center`}>
@@ -695,30 +688,26 @@ export default function ProductionARViewer() {
 
       {/* Bottom Status */}
       <div
-        className={`fixed bottom-0 left-0 right-0 p-${
-          isMobile ? "2" : "4"
-        } z-20`}
+        className={`fixed bottom-0 left-0 right-0 p-${isMobile ? "2" : "4"
+          } z-20`}
       >
         {cameraReady && arInitialized && (
           <Card className="bg-transparent border-none">
             <CardContent className={`p-${isMobile ? "3" : "4"} text-center`}>
               <div className="flex items-center justify-center gap-2 mb-2 ">
                 <div
-                  className={`w-3 h-3 rounded-full ${
-                    activeMarkers.size > 0
+                  className={`w-3 h-3 rounded-full ${activeMarkers.size > 0
                       ? "bg-green-500"
                       : "bg-blue-500 animate-pulse"
-                  }`}
+                    }`}
                 />
                 <span
-                  className={`text-white font-medium text-${
-                    isMobile ? "sm" : "base"
-                  }`}
+                  className={`text-white font-medium text-${isMobile ? "sm" : "base"
+                    }`}
                 >
                   {activeMarkers.size > 0
-                    ? `${activeMarkers.size} Marker${
-                        activeMarkers.size > 1 ? "s" : ""
-                      } Active`
+                    ? `${activeMarkers.size} Marker${activeMarkers.size > 1 ? "s" : ""
+                    } Active`
                     : "Scan any marker to begin"}
                 </span>
               </div>
@@ -736,9 +725,8 @@ export default function ProductionARViewer() {
       {cameraReady && arInitialized && activeMarkers.size === 0 && (
         <div className="fixed inset-0 flex items-center justify-center z-10 pointer-events-none px-4">
           <div
-            className={`${
-              isMobile ? "w-64 h-40" : "w-72 h-48"
-            } border-2 border-white/40 rounded-xl relative`}
+            className={`${isMobile ? "w-64 h-40" : "w-72 h-48"
+              } border-2 border-white/40 rounded-xl relative`}
           >
             <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-blue-400 rounded-tl-xl"></div>
             <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-blue-400 rounded-tr-xl"></div>
@@ -746,9 +734,8 @@ export default function ProductionARViewer() {
             <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-blue-400 rounded-br-xl"></div>
             <div className="absolute inset-0 flex items-center justify-center">
               <span
-                className={`text-white text-${
-                  isMobile ? "xs" : "sm"
-                } bg-black/60 px-3 py-1 rounded-full text-center`}
+                className={`text-white text-${isMobile ? "xs" : "sm"
+                  } bg-black/60 px-3 py-1 rounded-full text-center`}
               >
                 Scan any of {markers.length} markers
               </span>
