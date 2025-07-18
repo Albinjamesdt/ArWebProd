@@ -37,7 +37,7 @@ export const authOptions = {
         console.log("Username match:", isUserValid);
         console.log("Password match:", isPasswordValid);
 
-        if (isUserValid ) {
+        if (isUserValid && isPasswordValid) {
           return { id: "admin", name: adminUser.name };
         }
 
