@@ -2,7 +2,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
-import { log } from "console";
 
 
 export const authOptions = {
@@ -50,6 +49,7 @@ console.log("adminUser.hashedPassword:",adminUser.hashedPassword);
   ],
   session: { strategy: "jwt" as const },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: true,  
 }; 
 
 const handler = NextAuth(authOptions);
