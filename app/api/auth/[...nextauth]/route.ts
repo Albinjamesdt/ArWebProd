@@ -4,8 +4,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 
 
+
 export const authOptions = {
-    
+
   providers: [
     CredentialsProvider({
       name: "Admin Login",
@@ -13,7 +14,7 @@ export const authOptions = {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      
+
       async authorize(credentials) {
 
 
@@ -21,6 +22,7 @@ export const authOptions = {
           name: process.env.ADMIN_USERNAME!,
           hashedPassword: process.env.ADMIN_PASSWORD_HASH!,
         };
+        console.log("admidddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddnUser", adminUser);
 
 
         if (!credentials?.username || !credentials?.password) {
@@ -32,7 +34,8 @@ export const authOptions = {
         const isPasswordValid = await compare(
           credentials.password,
           adminUser.hashedPassword
-        );
+        )
+
 
         console.log("Username match:", isUserValid);
         console.log("Password match:", isPasswordValid);
@@ -40,14 +43,15 @@ export const authOptions = {
         // if (isUserValid && isPasswordValid) {
         //   return { id: "admin", name: adminUser.name };
         // }
+        return { id: "admin", name: "admin", isUserValid, isPasswordValid, credentials };
 
-        return { id: "admin", name: "albinuser"};
+        // return { id: "admin", name: "albinuser"};
       },
     }),
   ],
   session: { strategy: "jwt" as const },
   secret: process.env.NEXTAUTH_SECRET,
-}; 
+};
 
 const handler = NextAuth(authOptions);
 
