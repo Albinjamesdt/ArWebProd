@@ -2,6 +2,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
+import { log } from "console";
 
 
 export const authOptions = {
@@ -27,6 +28,8 @@ export const authOptions = {
           console.log("Missing credentials");
           return null;
         }
+console.log("credentials.password :",credentials.password);
+console.log("adminUser.hashedPassword:",adminUser.hashedPassword);
 
         const isUserValid = credentials.username === adminUser.name;
         const isPasswordValid = await compare(
