@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build && next-on-pages --experimental-minify",
+   "build": "next build && npx @cloudflare/next-on-pages build .next",
+  "deploy": "wrangler pages deploy . --project-name=webar-prod",
     "dev": "next dev",
-    "deploy": "wrangler pages deploy .vercel/output/static --project-name=webar-prod",
+    "export": "next export", 
     "lint": "next lint",
     "start": "next start",
     "generate-targets": "node scripts/generate-mind-file.js"
