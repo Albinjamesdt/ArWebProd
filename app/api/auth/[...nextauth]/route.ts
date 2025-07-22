@@ -15,31 +15,22 @@ export const authOptions = {
       },
       
       async authorize(credentials) {
-
-
         const adminUser = {
           name: process.env.ADMIN_USERNAME!,
           hashedPassword: process.env.ADMIN_PASSWORD_HASH!,
         };
 
-
         if (!credentials?.username || !credentials?.password) {
           console.log("Missing credentials");
           return null;
         }
-console.log("credentials.password :",credentials.password);
-console.log("adminUser.hashedPassword:",adminUser.hashedPassword);
-
         const isUserValid = credentials.username === adminUser.name;
         const isPasswordValid = await compare(
           credentials.password,
           adminUser.hashedPassword
         );
 
-        console.log("Username match:", isUserValid);
-        console.log("Password match:", isPasswordValid);
-
-        if (isUserValid) {
+        if (isUserValid && isPasswordValid) {
           return { id: "admin", name: adminUser.name };
         }
 

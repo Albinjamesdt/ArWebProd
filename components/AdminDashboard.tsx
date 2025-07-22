@@ -143,8 +143,16 @@ export default function AdminDashboard() {
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || "Upload failed")
+        let message = "Upload failed";
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await response.json();
+          message = data.error || message;
+        } else {
+          // Fallback for HTML or plain text error responses
+          message = await response.text();
+        }
+        throw new Error(message);
       }
 
       const data = await response.json()
