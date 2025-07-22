@@ -20,6 +20,7 @@ declare global {
     MINDAR: any;
   }
 }
+ export const runtime="edge"
 
 export default function ProductionARViewer() {
   const [markers, setMarkers] = useState<MarkerWithUrls[]>([]);

@@ -22,7 +22,7 @@ import type { MarkerWithUrls } from "@/lib/supabase-client"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
  
- 
+ export const runtime="edge"
 
 export default function AdminDashboard() {
    // 1) ALL hooks at the top, unconditionally:
