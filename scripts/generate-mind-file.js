@@ -1,17 +1,18 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
-const { createClient } = require("@supabase/supabase-js");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 
-// Supabase configuration
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  "https://fydrjniligfkxnpahzto.supabase.co";
-const supabaseServiceKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5ZHJqbmlsaWdma3hucGFoenRvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDc0OTMxMSwiZXhwIjoyMDY2MzI1MzExfQ.Hw7dDFIbO67rxqnBxPb9IY2-TismvIKzjhB_jfOibo0";
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Cloudflare R2 configuration (S3-compatible)
+const r2Client = new S3Client({
+  region: "auto",
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+  },
+});
+const R2_BUCKET = process.env.R2_BUCKET;
 
 async function generateMindFile(
   imageFilePaths,
@@ -144,33 +145,25 @@ async function generateMindFile(
   }
 }
 
-async function uploadToSupabase(filePath, fileName = "targets.mind") {
+async function uploadToR2(filePath, fileName = "targets.mind") {
   try {
-    console.log("☁️ Uploading to Supabase...");
+    console.log("☁️ Uploading to Cloudflare R2...");
 
     // Read the file
     const fileBuffer = fs.readFileSync(filePath);
 
-    // Upload to Supabase storage
-    const { data, error } = await supabase.storage
-      .from("targets")
-      .upload(fileName, fileBuffer, {
-        contentType: "application/octet-stream",
-        upsert: true,
-      });
+    // Upload to R2 bucket
+    await r2Client.send(
+      new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: fileName,
+        Body: fileBuffer,
+        ContentType: "application/octet-stream",
+      }),
+    );
 
-    if (error) {
-      throw error;
-    }
-
-    console.log("✅ Successfully uploaded to Supabase:", data.path);
-
-    // Get public URL
-    const { data: publicUrlData } = supabase.storage
-      .from("targets")
-      .getPublicUrl(fileName);
-
-    console.log("🔗 Public URL:", publicUrlData.publicUrl);
+    const publicUrl = `${process.env.R2_PUBLIC_ENDPOINT || process.env.R2_ENDPOINT}/${R2_BUCKET}/${fileName}`;
+    console.log("🔗 Public URL:", publicUrl);
 
     // Clean up local file
     fs.unlinkSync(filePath);
@@ -178,11 +171,11 @@ async function uploadToSupabase(filePath, fileName = "targets.mind") {
 
     return {
       success: true,
-      path: data.path,
-      publicUrl: publicUrlData.publicUrl,
+      key: fileName,
+      publicUrl,
     };
   } catch (error) {
-    console.error("❌ Error uploading to Supabase:", error);
+    console.error("❌ Error uploading to R2:", error);
     throw error;
   }
 }
@@ -225,7 +218,7 @@ async function processMarkersAndGenerateTargets() {
     const mindFilePath = await generateMindFile(tempImagePath, "targets.mind");
 
     // Upload to Supabase
-    const uploadResult = await uploadToSupabase(mindFilePath, "targets.mind");
+    const uploadResult = await uploadToR2(mindFilePath, "targets.mind");
 
     // Clean up temp image
     fs.unlinkSync(tempImagePath);
@@ -249,8 +242,6 @@ async function processMarkersAndGenerateTargets() {
 // Export functions for use in API routes
 module.exports = {
   generateMindFile,
-  uploadToSupabase,
-  processMarkersAndGenerateTargets,
 };
 
 // If run directly

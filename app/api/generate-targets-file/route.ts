@@ -1,6 +1,6 @@
 // app\api\generate-targets-file\route.ts
 import { type NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin, supabaseClient } from "@/lib/supabase-client";
+import { uploadFile, deleteObject, listObjects, getPublicUrl } from "@/lib/r2-client";
 import fs from "fs";
 import path from "path";
 import { generateMindFile } from "../../../scripts/generate-mind-file";
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
 
-    const mindFiles: { marker: string; mindFileUrl: string; uploadPath: string }[] = [];
+    const mindFiles: { marker: string; mindFileUrl: string }[] = [];
 
     // Prepare all files for processing
     const tempFiles: { tempImagePath: string; markerName: string; file: File }[] = [];
@@ -53,27 +53,11 @@ export async function POST(request: NextRequest) {
       tempFiles.push({ tempImagePath, markerName, file });
     }
 
-    // delete any existing targets.mind file from supabase storage
-    const { data: existingFiles, error: listError } = await supabaseAdmin.storage
-      .from("targets")
-      .list("", {
-        limit: 1,
-        offset: 0,
-        sortBy: { column: "name", order: "desc" },
-      });
-
-    if (listError) {
-      throw new Error(`Supabase list error: ${listError.message}`);
-    } 
-
-    if (existingFiles.length > 0) {
-      const existingFileName = existingFiles[0].name;
-      const { error: deleteError } = await supabaseAdmin.storage
-        .from("targets")
-        .remove([existingFileName]);
-      if (deleteError) {
-        throw new Error(`Supabase delete error: ${deleteError.message}`);
-      }
+    // delete any existing targets.mind file from R2 storage
+    try {
+      await deleteObject("targets.mind");
+    } catch (_) {
+      // ignore if not present
     }
 
     // Generate a single mind file from all marker images
@@ -82,25 +66,10 @@ export async function POST(request: NextRequest) {
 
     // Upload the combined mind file
     const mindFileBuffer = fs.readFileSync(mindFilePath);
-    const { data: uploadData, error: uploadError } =
-      await supabaseAdmin.storage
-      .from("targets")
-      .upload("targets.mind", mindFileBuffer, {
-        contentType: "application/octet-stream",
-        upsert: true,
-      });
+    await uploadFile("targets.mind", mindFileBuffer, "application/octet-stream");
 
-    if (uploadError) {
-      // Clean up temp files before throwing
-      tempFiles.forEach(f => fs.unlinkSync(f.tempImagePath));
-      fs.unlinkSync(mindFilePath);
-      throw new Error(`Supabase upload failed: ${uploadError.message}`);
-    }
-
-    // Get public URL
-    const { data: publicUrlData } = supabaseClient.storage
-      .from("targets")
-      .getPublicUrl("targets.mind");
+    // Get public URL from R2
+    const publicUrl = getPublicUrl("targets.mind");
 
     // Clean up temp files
     tempFiles.forEach(f => fs.unlinkSync(f.tempImagePath));
@@ -108,8 +77,7 @@ export async function POST(request: NextRequest) {
 
     mindFiles.push({
       marker: "all",
-      mindFileUrl: publicUrlData.publicUrl,
-      uploadPath: uploadData.path,
+      mindFileUrl: publicUrl,
     });
 
     return NextResponse.json({
@@ -133,24 +101,12 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Fetch all targets files from Supabase storage
-    const { data, error } = await supabaseAdmin.storage
-      .from("targets")
-      .list("", {
-        limit: 100,
-        offset: 0,
-        sortBy: { column: "name", order: "desc" },
-      });
-
-    if (error) {
-      throw error;
-    }
-
-    const targetsFiles = data.map((file) => ({
-      name: file.name,
-      publicUrl: supabaseClient.storage.from("targets").getPublicUrl(file.name)
-        .data.publicUrl,
-      updatedAt: file.updated_at,
+    // Fetch all targets files from R2 storage
+    const objects = await listObjects();
+    const targetsFiles = objects.map(obj => ({
+      name: obj.Key!,
+      publicUrl: getPublicUrl(obj.Key!),
+      updatedAt: obj.LastModified?.toISOString(),
     }));
 
     return NextResponse.json({ publicUrl: targetsFiles[0]?.publicUrl });

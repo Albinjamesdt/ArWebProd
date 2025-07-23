@@ -1,6 +1,7 @@
 // app\api\markers\route.ts
 import { type NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin, supabaseClient } from "@/lib/supabase-client";
+import { supabaseAdmin } from "@/lib/supabase-client";
+import { uploadFile, getPublicUrl } from "@/lib/r2-client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 
@@ -19,13 +20,9 @@ export async function GET() {
 
     const markers =
       rows?.map((m) => {
-        const markerImageUrl = supabaseClient.storage
-          .from("marker-images")
-          .getPublicUrl(m.marker_image_path).data.publicUrl;
+        const markerImageUrl = getPublicUrl(`marker-images/${m.marker_image_path}`);
 
-        const videoUrl = supabaseClient.storage
-          .from("marker-videos")
-          .getPublicUrl(m.video_path).data.publicUrl;
+        const videoUrl = getPublicUrl(`marker-videos/${m.video_path}`);
 
         return {
           id: m.id,
@@ -66,14 +63,7 @@ export async function POST(request: NextRequest) {
     const markerFileName = `marker-${Date.now()}.${markerExt}`;
     const markerBuffer = await markerFile.arrayBuffer();
 
-    const { error: markerUploadError } = await supabaseAdmin.storage
-      .from("marker-images")
-      .upload(markerFileName, markerBuffer, {
-        contentType: markerFile.type,
-        upsert: true,
-      });
-
-    if (markerUploadError) throw markerUploadError;
+    await uploadFile(`marker-images/${markerFileName}`, Buffer.from(markerBuffer), markerFile.type);
 
     // Handle video upload or URL
     let videoPath: string;
@@ -82,14 +72,7 @@ export async function POST(request: NextRequest) {
       const videoFileName = `video-${Date.now()}.${videoExt}`;
       const videoBuffer = await videoFile.arrayBuffer();
 
-      const { error: videoUploadError } = await supabaseAdmin.storage
-        .from("marker-videos")
-        .upload(videoFileName, videoBuffer, {
-          contentType: videoFile.type,
-          upsert: true,
-        });
-
-      if (videoUploadError) throw videoUploadError;
+      await uploadFile(`marker-videos/${videoFileName}`, Buffer.from(videoBuffer), videoFile.type);
       videoPath = videoFileName;
     } else if (videoUrl) {
       videoPath = videoUrl;
@@ -114,14 +97,9 @@ export async function POST(request: NextRequest) {
     if (insertError) throw insertError;
 
     // Return with public URLs
-    const markerImageUrl = supabaseClient.storage
-      .from("marker-images")
-      .getPublicUrl(markerFileName).data.publicUrl;
+    const markerImageUrl = getPublicUrl(`marker-images/${markerFileName}`);
 
-    const finalVideoUrl = videoFile
-      ? supabaseClient.storage.from("marker-videos").getPublicUrl(videoPath)
-          .data.publicUrl
-      : videoPath;
+    const finalVideoUrl = videoFile ? getPublicUrl(`marker-videos/${videoPath}`) : videoPath;
 
     return NextResponse.json(
       {
