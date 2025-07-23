@@ -7,6 +7,7 @@ import { generateMindFile } from "../../../scripts/generate-mind-file";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 
+export const runtime = "nodejs";
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

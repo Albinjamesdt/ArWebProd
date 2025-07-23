@@ -86,7 +86,7 @@ async function generateMindFile(
     } catch (e) {
       console.log("⚠️ Loading indicator timeout, checking for completion...");
     }
-    // await page.screenshot({ path: "loading_indicator_timeout.png" });
+     await page.screenshot({ path: "loading_indicator_timeout.png" });
 
     // Wait for compile button to reappear (compilation finished)
     try {
@@ -95,13 +95,13 @@ async function generateMindFile(
         timeout: 60000,
       });
       console.log("✅ Compilation finished, download ready");
-      // await page.screenshot({ path: "download_ready.png" });
+      await page.screenshot({ path: "download_ready.png" });
 
       // Click to download
       console.log("💾 Initiating download...");
-      // await page.screenshot({ path: "download_started.png" });
+     await page.screenshot({ path: "download_started.png" });
       await page.click(".button.button--primary.startButton_OY2G");
-      // await page.screenshot({ path: "download_ended.png" });
+      await page.screenshot({ path: "download_ended.png" });
       // Wait for download to complete
       const downloadFile = path.join(downloadPath, outputFileName);
       const tempDownloadFile = downloadFile + ".crdownload";
