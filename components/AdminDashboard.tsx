@@ -106,7 +106,7 @@ export default function AdminDashboard() {
       const uploadResponse = await fetch("/api/generate-targets-file", {
         method: "POST",
         body: formData,
-        signal: controller.signal,
+        
       })
 
       if (!uploadResponse.ok) {
