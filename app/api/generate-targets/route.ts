@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin, supabaseClient } from "@/lib/supabase-client"
-
+export const runtime = 'edge';
 export async function POST(request: NextRequest) {
   try {
     // Fetch all markers

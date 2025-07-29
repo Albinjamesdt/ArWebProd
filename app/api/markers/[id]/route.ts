@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase-client"
-
+export const runtime = 'edge';
 export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
   const { params } = await Promise.resolve(context);
   const { id } = await params;
