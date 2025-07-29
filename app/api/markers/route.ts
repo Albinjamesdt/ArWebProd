@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase-client";
 import { uploadFile, getPublicUrl } from "@/lib/r2-client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-export const runtime = 'edge';
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
