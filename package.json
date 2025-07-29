@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+     "generate-targets": "node scripts/generate-mind-file.js",
+     "build": "next build",
     "pages:build": "npx @cloudflare/next-on-pages --skip-build",
     "deploy": "npm run build && npm run pages:build && wrangler pages deploy .vercel/output/static --project-name=webar-prod --branch=production",
     "dev": "next dev",
     "export": "next export",
     "lint": "next lint",
-    "start": "next start",
-    "generate-targets": "node scripts/generate-mind-file.js"
+    "start": "next start"
+   
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
