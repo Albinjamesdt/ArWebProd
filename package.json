@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build && npx @cloudflare/next-on-pages build .next",
-    "deploy": "wrangler pages deploy . --project-name=webar-prod",
+    "build": "next build",
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "deploy": "npm run build && npm run pages:build && wrangler pages deploy . --project-name=webar-prod",
     "dev": "next dev",
     "export": "next export",
     "lint": "next lint",
     "start": "next start",
-    "generate-targets": "node scripts/generate-mind-file.js",
-    "pages:build": "@cloudflare/next-on-pages"
+    "generate-targets": "node scripts/generate-mind-file.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
@@ -71,7 +71,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "^1.13.12",
+    "@cloudflare/next-on-pages": "^1.13.13",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
