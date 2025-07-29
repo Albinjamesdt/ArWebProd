@@ -3,15 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-     "generate-targets": "node scripts/generate-mind-file.js",
-     "build": "next build",
+    "generate-targets": "node scripts/generate-mind-file.js",
+    "build": "next build",
     "pages:build": "npx @cloudflare/next-on-pages --skip-build",
     "deploy": "npm run build && npm run pages:build && wrangler pages deploy .vercel/output/static --project-name=webar-prod --branch=production",
     "dev": "next dev",
     "export": "next export",
     "lint": "next lint",
     "start": "next start"
-   
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
@@ -76,8 +75,12 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
     "postcss": "^8.5",
+    "process": "^0.11.10",
     "puppeteer": "^21.0.0",
+    "stream-browserify": "^3.0.0",
     "tailwindcss": "^3.4.17",
     "typescript": "^5",
     "vercel": "^44.5.1"
