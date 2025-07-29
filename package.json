@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "pages:build": "npx @cloudflare/next-on-pages",
-    "deploy": "npm run build && npm run pages:build && wrangler pages deploy . --project-name=webar-prod",
+    "pages:build": "npx @cloudflare/next-on-pages --skip-build",
+    "deploy": "npm run build && npm run pages:build && wrangler pages deploy .vercel/output/static --project-name=webar-prod --branch=production",
     "dev": "next dev",
     "export": "next export",
     "lint": "next lint",
