@@ -26,7 +26,7 @@ export const getAuthOptions = (): AuthOptions => {
           if (!credentials?.username || !credentials?.password) {
             return null;
           }
-          console.log("a--------------------------------",adminHash)
+         
           try {
             const isUserValid = credentials.username === adminUser;
             const isPasswordValid = await compare(credentials.password, adminHash);
