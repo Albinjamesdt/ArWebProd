@@ -3,17 +3,6 @@ import type { AuthOptions, SessionStrategy } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 export const getAuthOptions = (): AuthOptions => {
-  const isBuild = process.env.npm_lifecycle_event === 'build';
-
-  if (isBuild) {
-    return {
-      providers: [],
-      secret: 'temp-secret-for-build',
-      session: { strategy: 'jwt' as SessionStrategy },
-      pages: { signIn: '/admin' },
-    };
-  }
-
   return {
     providers: [
       CredentialsProvider({
@@ -26,8 +15,8 @@ export const getAuthOptions = (): AuthOptions => {
           // Dynamic import for server-only modules
           const { compare } = await import('bcryptjs');
           
-          const adminUser = process.env.ADMIN_USERNAME;
-          const adminHash = process.env.ADMIN_PASSWORD_HASH;
+          const adminUser = process.env.NEXT_ADMIN_USERNAME as string;
+          const adminHash = process.env.NEXT_ADMIN_PASSWORD_HASH as string;
 
           if (!adminUser || !adminHash) {
             console.error("Admin credentials not configured");
@@ -37,7 +26,7 @@ export const getAuthOptions = (): AuthOptions => {
           if (!credentials?.username || !credentials?.password) {
             return null;
           }
-
+          console.log("a--------------------------------",adminHash)
           try {
             const isUserValid = credentials.username === adminUser;
             const isPasswordValid = await compare(credentials.password, adminHash);
@@ -57,7 +46,7 @@ export const getAuthOptions = (): AuthOptions => {
       error: "/admin?error=",
     },
     session: { strategy: "jwt" },
-    secret: process.env.NEXTAUTH_SECRET || "default-secret-during-build",
+    secret: process.env.NEXT_AUTH_SECRET || "default-secret-during-build",
     debug: process.env.NODE_ENV !== 'production',
   };
 };

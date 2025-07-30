@@ -1,39 +1,38 @@
 // next.config.js
-import webpack from 'webpack';
- 
+// import webpack from 'webpack';
 
-// Create a custom webpack configuration
-const configureWebpack = (config, { isServer }) => {
-  config.resolve.fallback = {
-    ...config.resolve.fallback,
-    crypto: 'crypto-browserify',
-    stream: 'stream-browserify',
-    buffer: 'buffer/',
-    fs: false,
-    path: false,
-  };
+// // Create a custom webpack configuration
+// const configureWebpack = (config, { isServer }) => {
+//   config.resolve.fallback = {
+//     ...config.resolve.fallback,
+//     crypto: 'crypto-browserify',
+//     stream: 'stream-browserify',
+//     buffer: 'buffer/',
+//     fs: false,
+//     path: false,
+//   };
 
-  config.resolve.alias = {
-    ...config.resolve.alias,
-    'crypto': 'crypto-browserify',
-    'stream': 'stream-browserify',
-    'buffer': 'buffer/'
-  };
+//   config.resolve.alias = {
+//     ...config.resolve.alias,
+//     'crypto': 'crypto-browserify',
+//     'stream': 'stream-browserify',
+//     'buffer': 'buffer/'
+//   };
 
-  config.plugins.push(
-    new webpack.ProvidePlugin({
-      Buffer: ['buffer', 'Buffer'],
-      process: 'process/browser',
-    })
-  );
+//   config.plugins.push(
+//     new webpack.ProvidePlugin({
+//       Buffer: ['buffer', 'Buffer'],
+//       process: 'process/browser',
+//     })
+//   );
   
-  if (!isServer) {
-    config.externals = config.externals || [];
-    config.externals.push('bcryptjs');
-  }
+//   if (!isServer) {
+//     config.externals = config.externals || [];
+//     config.externals.push('bcryptjs');
+//   }
   
-  return config;
-};
+//   return config;
+// };
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -50,8 +49,6 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['bcryptjs'],
   },
-  webpack: configureWebpack,
-  
   // Move these out of experimental as they are now top-level options
   serverExternalPackages: ['bcryptjs'],
   outputFileTracingExcludes: {
