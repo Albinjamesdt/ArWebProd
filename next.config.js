@@ -30,7 +30,6 @@
 //     config.externals = config.externals || [];
 //     config.externals.push('bcryptjs');
 //   }
-  
 //   return config;
 // };
 
@@ -61,7 +60,7 @@ const nextConfig = {
   },
   
   // Use standalone output for better compatibility
-  output: 'standalone',
+  // output: 'standalone',
   
   // Minimal experimental features
   experimental: {
