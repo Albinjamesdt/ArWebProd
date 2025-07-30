@@ -2,6 +2,7 @@
   "name": "webar-newspaper-viewer",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "generate-targets": "node scripts/generate-mind-file.js",
     "build": "next build",
@@ -49,6 +50,7 @@
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
     "date-fns": "^3.0.0",
+    "dotenv": "^17.2.1",
     "embla-carousel-react": "8.5.1",
     "fs": "latest",
     "input-otp": "1.4.1",
@@ -77,12 +79,18 @@
     "@types/react-dom": "^19",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
+    "http-browserify": "^1.7.0",
+    "https-browserify": "^1.0.0",
+    "node-polyfill-webpack-plugin": "^4.1.0",
     "postcss": "^8.5",
     "process": "^0.11.10",
     "puppeteer": "^21.0.0",
+    "querystring-es3": "^0.2.1",
     "stream-browserify": "^3.0.0",
     "tailwindcss": "^3.4.17",
     "typescript": "^5",
-    "vercel": "^44.5.1"
+    "url": "^0.11.4",
+    "vercel": "^44.5.1",
+    "webpack": "^5.101.0"
   }
 }

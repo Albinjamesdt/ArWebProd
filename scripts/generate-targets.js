@@ -1,6 +1,6 @@
 // This script generates MindAR target files from uploaded markers
 // Run this locally when markers are added/updated
-
+ 
 import fs from "fs"
 import path from "path"
 import fetch from "node-fetch"

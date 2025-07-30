@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+export const dynamic = 'force-dynamic';
 export const runtime = 'edge';
 export default function AdminPanel() {
   const { data: session, status } = useSession();

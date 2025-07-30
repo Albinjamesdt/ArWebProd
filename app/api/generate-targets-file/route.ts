@@ -3,17 +3,20 @@ import { type NextRequest, NextResponse } from "next/server";
 import { uploadFile, deleteObject, listObjects, getPublicUrl } from "@/lib/r2-client";
 import fs from "fs";
 import path from "path";
-import { generateMindFile } from "../../../scripts/generate-mind-file";
+import { generateMindFile } from "../../../scripts/generate-mind-file.js";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { getAuthOptions } from "@/lib/auth-options";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+    const session = await getServerSession(getAuthOptions())
+
+    if (!session) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     // Check if the request is multipart/form-data
     const contentType = request.headers.get("content-type") || "";
     if (!contentType.includes("multipart/form-data")) {
@@ -117,6 +120,5 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-  
+
 }
- 

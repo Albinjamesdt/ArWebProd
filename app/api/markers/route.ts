@@ -1,38 +1,19 @@
-// app\api\markers\route.ts
+// app/api/markers/route.ts
 import { type NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase-client";
 import { uploadFile, getPublicUrl } from "@/lib/r2-client";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { getAuthOptions } from "@/lib/auth-options";
+
+// Simple in-memory storage (replace with R2 metadata storage)
+let markers: any[] = [];
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(getAuthOptions());
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { data: rows, error } = await supabaseAdmin
-      .from("markers")
-      .select("id, title, marker_image_path, video_path, created_at")
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-
-    const markers =
-      rows?.map((m) => {
-        const markerImageUrl = getPublicUrl(`marker-images/${m.marker_image_path}`);
-
-        const videoUrl = getPublicUrl(`marker-videos/${m.video_path}`);
-
-        return {
-          id: m.id,
-          title: m.title,
-          markerImageUrl,
-          videoUrl,
-          createdAt: m.created_at,
-        };
-      }) || [];
-
+    
     return NextResponse.json(markers);
   } catch (err: any) {
     console.error("GET /api/markers error:", err);
@@ -45,76 +26,70 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(getAuthOptions());
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
     const formData = await request.formData();
     const title = formData.get("title") as string;
     const markerFile = formData.get("markerImage") as File | null;
-    const videoFile = formData.get("video") as File | null;
-    const videoUrl = formData.get("videoUrl") as string;
+    const videoFile = formData.get("videoFile") as File | null;
 
-    if (!title || !markerFile) {
+    if (!title || !markerFile || !videoFile) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // Upload marker image
-    const markerExt = markerFile.name.split(".").pop();
-    const markerFileName = `marker-${Date.now()}.${markerExt}`;
+    // Upload marker image to R2
+    const markerFileName = `marker-${Date.now()}.png`;
     const markerBuffer = await markerFile.arrayBuffer();
-
     await uploadFile(`marker-images/${markerFileName}`, Buffer.from(markerBuffer), markerFile.type);
 
-    // Handle video upload or URL
-    let videoPath: string;
-    if (videoFile) {
-      const videoExt = videoFile.name.split(".").pop();
-      const videoFileName = `video-${Date.now()}.${videoExt}`;
-      const videoBuffer = await videoFile.arrayBuffer();
+    // Upload video to R2
+    const videoFileName = `video-${Date.now()}.mp4`;
+    const videoBuffer = await videoFile.arrayBuffer();
+    await uploadFile(`marker-videos/${videoFileName}`, Buffer.from(videoBuffer), videoFile.type);
 
-      await uploadFile(`marker-videos/${videoFileName}`, Buffer.from(videoBuffer), videoFile.type);
-      videoPath = videoFileName;
-    } else if (videoUrl) {
-      videoPath = videoUrl;
-    } else {
-      return NextResponse.json(
-        { error: "Missing video file or URL" },
-        { status: 400 }
-      );
-    }
+    // Create marker object
+    const newMarker = {
+      id: Date.now().toString(),
+      title,
+      markerImageUrl: getPublicUrl(`marker-images/${markerFileName}`),
+      videoUrl: getPublicUrl(`marker-videos/${videoFileName}`),
+      createdAt: new Date().toISOString(),
+    };
 
-    // Insert into database
-    const { data: inserted, error: insertError } = await supabaseAdmin
-      .from("markers")
-      .insert({
-        title,
-        marker_image_path: markerFileName,
-        video_path: videoPath,
-      })
-      .select()
-      .single();
+    // Add to in-memory storage
+    markers.push(newMarker);
 
-    if (insertError) throw insertError;
-
-    // Return with public URLs
-    const markerImageUrl = getPublicUrl(`marker-images/${markerFileName}`);
-
-    const finalVideoUrl = videoFile ? getPublicUrl(`marker-videos/${videoPath}`) : videoPath;
-
-    return NextResponse.json(
-      {
-        id: inserted.id,
-        title: inserted.title,
-        markerImageUrl,
-        videoUrl: finalVideoUrl,
-        createdAt: inserted.created_at,
-      },
-      { status: 201 }
-    );
+    return NextResponse.json(newMarker, { status: 201 });
   } catch (err: any) {
     console.error("POST /api/markers error:", err);
     return NextResponse.json(
       { error: "Failed to create marker", detail: String(err) },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(getAuthOptions());
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    const { id } = await request.json();
+    markers = markers.filter(m => m.id !== id);
+    
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("DELETE /api/markers error:", err);
+    return NextResponse.json(
+      { error: "Failed to delete marker", detail: String(err) },
       { status: 500 }
     );
   }

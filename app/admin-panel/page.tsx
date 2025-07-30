@@ -1,16 +1,28 @@
 // app/admin-panel/page.tsx
-import { redirect } from "next/navigation"
-import { getServerSession } from "next-auth"
-import { authOptions } from "../api/auth/[...nextauth]/route" 
-import AdminDashboard from "@/components/AdminDashboard"
- 
-export const runtime = 'edge';
-export default async function AdminPanelPage() {
-  const session = await getServerSession(authOptions)
-  if (!session) {
-    // no session → bounce to login
-    redirect("/admin")
+'use client';
+
+import { redirect, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+import AdminDashboard from "@/components/AdminDashboard";
+
+export default function AdminPanelPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/admin');
+    }
+  }, [status, router]);
+
+  if (status === 'loading') {
+    return <div>Loading...</div>; // Or a loading spinner
   }
-  // session exists → render your client panel
-  return <AdminDashboard /> 
+
+  if (!session) {
+    return null; // Will be redirected by the useEffect
+  }
+
+  return <AdminDashboard />;
 }

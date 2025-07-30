@@ -2,7 +2,7 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-
+import 'dotenv/config'  
 // Cloudflare R2 configuration (S3-compatible)
 const r2Client = new S3Client({
   region: "auto",
@@ -14,7 +14,7 @@ const r2Client = new S3Client({
 });
 const R2_BUCKET = process.env.R2_BUCKET;
 
-async function generateMindFile(
+export async function generateMindFile(
   imageFilePaths,
   outputFileName = "targets.mind"
 ) {
@@ -240,9 +240,7 @@ async function processMarkersAndGenerateTargets() {
 }
 
 // Export functions for use in API routes
-module.exports = {
-  generateMindFile,
-};
+ 
 
 // If run directly
 if (require.main === module) {

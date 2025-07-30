@@ -188,9 +188,11 @@ export default function AdminDashboard() {
     if (!confirm(`Are you sure you want to delete "${title}"?`)) return
 
     try {
-      const response = await fetch(`/api/markers/${id}`, {
+      const response = await fetch(`/api/markers`, {
         method: "DELETE",
-      })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
 
       if (!response.ok) {
         const data = await response.json()
