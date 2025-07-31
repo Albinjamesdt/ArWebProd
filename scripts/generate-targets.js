@@ -1,21 +1,26 @@
 // This script generates MindAR target files from uploaded markers
 // Run this locally when markers are added/updated
- 
+
 import fs from "fs"
 import path from "path"
 import fetch from "node-fetch"
-import { createClient } from "@supabase/supabase-js"
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
+import { getDB } from "../lib/cloudflare-client"
+import dotenv from "dotenv"
 
 // Load environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+dotenv.config()
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error("Missing Supabase environment variables")
-  process.exit(1)
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey)
+// Initialize S3 client for Cloudflare R2
+const s3Client = new S3Client({
+  region: "auto",
+  endpoint: `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
+  },
+})
 
 async function downloadImage(url, filepath) {
   const response = await fetch(url)
@@ -23,17 +28,28 @@ async function downloadImage(url, filepath) {
   fs.writeFileSync(filepath, buffer)
 }
 
+async function getPublicUrl(bucket, key) {
+  const command = new GetObjectCommand({
+    Bucket: bucket,
+    Key: key,
+  })
+
+  // Generate a presigned URL that's valid for 1 hour
+  const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 })
+  return url
+}
+
 async function generateTargets() {
   try {
-    console.log("Fetching markers from Supabase...")
+    console.log("Fetching markers from database...")
+
+    // Get database instance
+    const db = getDB(process.env)
 
     // Fetch all markers
-    const { data: markers, error } = await supabase
-      .from("markers")
-      .select("id, title, marker_image_path")
-      .order("created_at", { ascending: true })
-
-    if (error) throw error
+    const { results: markers } = await db.prepare(
+      "SELECT id, title, marker_image_path FROM markers ORDER BY created_at ASC"
+    ).all()
 
     if (!markers || markers.length === 0) {
       console.log("No markers found")
@@ -51,7 +67,10 @@ async function generateTargets() {
     // Download all marker images
     const imagePaths = []
     for (const marker of markers) {
-      const publicUrl = supabase.storage.from("marker-images").getPublicUrl(marker.marker_image_path).data.publicUrl
+      const publicUrl = await getPublicUrl(
+        process.env.R2_BUCKET_NAME || "marker-images",
+        marker.marker_image_path
+      )
 
       const filename = `marker-${marker.id}.jpg`
       const filepath = path.join(tempDir, filename)
@@ -65,12 +84,13 @@ async function generateTargets() {
     console.log("To generate targets.mind file:")
     console.log("1. Install MindAR CLI: npm install -g mindar-image-target-generator")
     console.log("2. Run: mindar-image-target-generator -i", imagePaths.join(" "), "-o public/targets.mind")
-    console.log('3. Upload targets.mind to Supabase Storage bucket "targets"')
+    console.log('3. Upload targets.mind to Cloudflare R2 bucket "targets"')
 
     // Note: The actual target generation requires the MindAR CLI tool
     // which needs to be installed separately and run manually
   } catch (error) {
     console.error("Error generating targets:", error)
+    process.exit(1)
   }
 }
 

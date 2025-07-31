@@ -1,35 +1,36 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { supabaseAdmin, supabaseClient } from "@/lib/supabase-client"
+import { getDB, getPublicUrl } from "@/lib/cloudflare-client"
+
 export const runtime = 'edge';
+
 export async function POST(request: NextRequest) {
   try {
-    // Fetch all markers
-    const { data: markers, error } = await supabaseAdmin
-      .from("markers")
-      .select("id, title, marker_image_path")
-      .order("created_at", { ascending: true })
-
-    if (error) throw error
+    // In a Cloudflare Workers environment, the env would be available in the context
+    // For Next.js API routes, we'll need to handle the environment differently
+    // This assumes you have set up the Cloudflare bindings in your wrangler.toml
+    
+    // Fetch all markers from D1 database
+    const db = getDB(process.env as any);
+    const { results: markers } = await db.prepare(
+      "SELECT id, title, marker_image_path FROM markers ORDER BY created_at ASC"
+    ).all();
 
     if (!markers || markers.length === 0) {
-      return NextResponse.json({ error: "No markers found" }, { status: 404 })
+      return NextResponse.json({ error: "No markers found" }, { status: 404 });
     }
 
-    // Get public URLs for all marker images
-    const markerData = markers.map((marker, index) => {
-      const publicUrl = supabaseClient.storage.from("marker-images").getPublicUrl(marker.marker_image_path)
-        .data.publicUrl
+    // Get public URLs for all marker images from R2
+    const markerData = markers.map((marker: any, index: number) => {
+      const publicUrl = getPublicUrl("marker-images", marker.marker_image_path);
 
       return {
         id: marker.id,
         title: marker.title,
         imageUrl: publicUrl,
         targetIndex: index,
-      }
-    })
+      };
+    });
 
-    // For now, return the marker data that can be used to generate targets
-    // In a full implementation, you would use the MindAR compiler here
     return NextResponse.json({
       success: true,
       markers: markerData,
@@ -38,11 +39,14 @@ export async function POST(request: NextRequest) {
       //   "1. Download marker images from the provided URLs",
       //   "2. Use MindAR image target generator: npm install -g mindar-image-target-generator",
       //   "3. Run: mindar-image-target-generator -i image1.jpg image2.jpg -o targets.mind",
-      //   "4. Upload targets.mind to Supabase Storage bucket 'targets'",
+      //   "4. Upload targets.mind to Cloudflare R2 bucket 'targets'",
       // ],
-    })
+    });
   } catch (err: any) {
-    console.error("Generate targets error:", err)
-    return NextResponse.json({ error: "Failed to generate targets", detail: String(err) }, { status: 500 })
+    console.error("Generate targets error:", err);
+    return NextResponse.json(
+      { error: "Failed to generate targets", detail: String(err) },
+      { status: 500 }
+    );
   }
 }
