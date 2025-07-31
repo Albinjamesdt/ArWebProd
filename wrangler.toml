@@ -1,3 +1,4 @@
 name = "webar-prod"
 pages_build_output_dir = ".vercel/output/static"
 compatibility_date = "2025-07-22"
+directory = "functions"
