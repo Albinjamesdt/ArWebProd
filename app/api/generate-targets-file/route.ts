@@ -1,4 +1,5 @@
 // app\api\generate-targets-file\route.ts
+export const runtime = 'edge'
 import { type NextRequest, NextResponse } from "next/server";
 import { uploadFile, deleteObject, listObjects, getPublicUrl } from "@/lib/r2-client";
 import fs from "fs";
