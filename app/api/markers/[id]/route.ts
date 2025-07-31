@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { type NextRequest, NextResponse } from "next/server"
 
 // Cloudflare R2 and D1 types

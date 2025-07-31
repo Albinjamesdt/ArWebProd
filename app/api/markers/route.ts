@@ -1,4 +1,5 @@
 // app/api/markers/route.ts
+
 import { type NextRequest, NextResponse } from "next/server";
 import { uploadFile, getPublicUrl } from "@/lib/r2-client";
 import { getServerSession } from "next-auth";
