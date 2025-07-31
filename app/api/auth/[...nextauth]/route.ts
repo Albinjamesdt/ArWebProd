@@ -2,7 +2,7 @@
 import NextAuth from "next-auth";
 import type { AuthOptions, SessionStrategy } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-
+export const runtime = 'edge'
 export const getAuthOptions = (): AuthOptions => {
   return {
     providers: [
