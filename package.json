@@ -43,7 +43,6 @@
     "@radix-ui/react-toggle": "1.1.1",
     "@radix-ui/react-toggle-group": "1.1.1",
     "@radix-ui/react-tooltip": "1.1.6",
-      "puppeteer": "^24.15.0",
     "autoprefixer": "^10.4.20",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
@@ -52,15 +51,12 @@
     "date-fns": "^3.0.0",
     "dotenv": "^17.2.1",
     "embla-carousel-react": "8.5.1",
-   
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
     "next": "15.2.4",
     "next-auth": "^4.24.11",
     "next-themes": "^0.4.4",
- 
-   
-  
+    "puppeteer": "^24.15.0",
     "react": "^18.2.0",
     "react-day-picker": "8.10.1",
     "react-dom": "^18.2.0",
@@ -74,7 +70,7 @@
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.13",
-    
+    "@cloudflare/workers-types": "^4.20250801.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "buffer": "^6.0.3",
@@ -84,7 +80,7 @@
     "node-polyfill-webpack-plugin": "^4.1.0",
     "postcss": "^8.5",
     "process": "^0.11.10",
-      "puppeteer": "^24.15.0",
+    "puppeteer": "^24.15.0",
     "querystring-es3": "^0.2.1",
     "stream-browserify": "^3.0.0",
     "tailwindcss": "^3.4.17",
@@ -92,6 +88,5 @@
     "url": "^0.11.4",
     "vercel": "^44.5.1",
     "webpack": "^5.101.0"
-  } 
-  
+  }
 }

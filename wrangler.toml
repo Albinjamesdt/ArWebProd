@@ -1,4 +1,17 @@
 name = "webar-prod"
-pages_build_output_dir = ".vercel/output/static"
+type = "javascript"  
 compatibility_date = "2025-07-22"
+workers_dev = true
+
+ 
+# This must exactly match the `pages_build_output_dir` that @cloudflare/next-on-pages spits out:
+pages_build_output_dir = ".vercel/output/static"
+
+[build]
+# run your normal Next.js build
+command  = "npm run build"
+directory = "."
+
+ 
+[functions]
 directory = "functions"

@@ -1,3 +1,4 @@
+// components\production-ar-viewer.tsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -12,7 +13,7 @@ import {
   Loader,
   Upload,
 } from "lucide-react";
-import type { MarkerWithUrls } from "@/lib/supabase-client";
+import type { MarkerWithUrls } from "@/lib/cloudflare-client";
 
 declare global {
   interface Window {

@@ -1,37 +1,4 @@
-// next.config.js
-// import webpack from 'webpack';
-
-// // Create a custom webpack configuration
-// const configureWebpack = (config, { isServer }) => {
-//   config.resolve.fallback = {
-//     ...config.resolve.fallback,
-//     crypto: 'crypto-browserify',
-//     stream: 'stream-browserify',
-//     buffer: 'buffer/',
-//     fs: false,
-//     path: false,
-//   };
-
-//   config.resolve.alias = {
-//     ...config.resolve.alias,
-//     'crypto': 'crypto-browserify',
-//     'stream': 'stream-browserify',
-//     'buffer': 'buffer/'
-//   };
-
-//   config.plugins.push(
-//     new webpack.ProvidePlugin({
-//       Buffer: ['buffer', 'Buffer'],
-//       process: 'process/browser',
-//     })
-//   );
-  
-//   if (!isServer) {
-//     config.externals = config.externals || [];
-//     config.externals.push('bcryptjs');
-//   }
-//   return config;
-// };
+// @ts-check
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -46,26 +13,39 @@ const nextConfig = {
     disableStaticImages: true
   },
   experimental: {
-    serverComponentsExternalPackages: ['bcryptjs'],
+    serverComponentsExternalPackages: ['bcryptjs', 'oauth'],
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
   },
-  // Move these out of experimental as they are now top-level options
-  serverExternalPackages: ['bcryptjs'],
+  // Configure webpack to handle Node.js modules
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: 'crypto-browserify',
+        stream: 'stream-browserify',
+        buffer: 'buffer',
+      };
+    }
+    return config;
+  },
+  // Server external packages
+  serverExternalPackages: ['bcryptjs', 'oauth'],
   outputFileTracingExcludes: {
     '**/*': [
       '**/node_modules/@next/swc*/**/*',
       '**/node_modules/next/dist/compiled/bcryptjs/**/*',
       '**/node_modules/bcryptjs/**/*',
-      '**/.next/cache/**/*'
+      '**/.next/cache/**/*',
+      '**/node_modules/oauth/**/*'
     ]
   },
-  
-  // Use standalone output for better compatibility
-  // output: 'standalone',
-  
-  // Minimal experimental features
-  experimental: {
-    // Add any necessary experimental features here
-  }
+  // Configure page runtime
+  reactStrictMode: true,
 };
 
 export default nextConfig;
