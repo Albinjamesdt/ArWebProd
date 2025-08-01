@@ -1,5 +1,4 @@
-import { D1Database } from '@cloudflare/workers-types'
-import type { R2Bucket } from '@cloudflare/workers-types/r2'
+import { D1Database, R2Bucket } from '@cloudflare/workers-types'
 
 declare global {
   // The ENV object's type
