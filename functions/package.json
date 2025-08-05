@@ -1,0 +1,18 @@
+ 
+{
+  "name": "webar-functions",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "api/generate-targets-node.js",
+  "engines": { "node": "18.x" },
+   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "chrome-aws-lambda": "^11.0.0",
+    "puppeteer-core": "^24.0.0",
+    "@aws-sdk/client-s3": "^3.857.0",
+    "formidable": "^2.1.1"
+  }
+}

@@ -17,25 +17,25 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Trash2, Eye, Upload, BarChart3, Zap, ExternalLink, Copy, Loader } from "lucide-react"
-import type { MarkerWithUrls } from "@/lib/supabase-client"
+import { Trash2, Eye, Upload, BarChart3, Zap, Loader } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
- 
- export const runtime="edge"
+
+export const runtime = "edge"
+
+// Cloudflare R2 Storage URL
+const R2_STORAGE_URL = process.env.NEXT_PUBLIC_R2_STORAGE_URL || "https://your-bucket.r2.cloudflarestorage.com"
 
 export default function AdminDashboard() {
-   // 1) ALL hooks at the top, unconditionally:
   const { data: session, status } = useSession()
   const [markers, setMarkers] = useState<MarkerWithUrls[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [targetInstructions, setTargetInstructions] = useState<any>(null)
   const [uploadProgress, setUploadProgress] = useState("")
- const router=useRouter()
-// 2) Redirect if unauthenticated
+  const router = useRouter()
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.replace("/admin");
@@ -48,15 +48,12 @@ export default function AdminDashboard() {
     }
   }, [status])
 
-  // 2) Early UI guards, *after* your hooks:
   if (status === "loading") {
     return <div className="text-center mt-20">Loading panel…</div>
   }
   if (!session) {
-    // you can show a redirect spinner or just null
     return null
   }
-
 
   const loadMarkers = async () => {
     try {
@@ -78,65 +75,16 @@ export default function AdminDashboard() {
     }
   }
 
-  const generateTargetsAfterUpload = async () => {
-    try {
-
-      // Download all marker images and upload them to /api/generate-targets-file
-      const markerFiles = await Promise.all(
-        markers.map(async (marker) => {
-          const response = await fetch(marker.markerImageUrl)
-          if (!response.ok) throw new Error("Failed to download marker image")
-          const blob = await response.blob()
-          // Use marker title or id for filename
-          const filename = `${marker.title || marker.id}.png`
-          return new File([blob], filename, { type: blob.type })
-        })
-      )
-
-      // Prepare FormData with all marker files
-      const formData = new FormData()
-      markerFiles.forEach((file) => {
-        formData.append("markerImages", file)
-      })
-
-      console.log("Uploading marker images for targets generation:", markerFiles)
-
-      setUploadProgress("Uploading all marker images for AR target generation...")
-
-      const uploadResponse = await fetch("/api/generate-targets-file", {
-        method: "POST",
-        body: formData,
-      })
-
-      if (!uploadResponse.ok) {
-        const data = await uploadResponse.json()
-        throw new Error(data.error || "Failed to upload marker images for targets generation")
-      }
-
-
-      const data = await uploadResponse.json()
-      console.log("Targets generation response:", data)
-    } catch (err) {
-      console.error("Generate targets error:", err)
-      setUploadProgress("⚠️ Targets generation failed, but marker was uploaded successfully.")
-      // Don't show error here as the main upload was successful
-    }
-  }
-
   const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setUploading(true)
     setError(null)
     setSuccess(null)
-    setTargetInstructions(null)
-    setUploadProgress("")
+    setUploadProgress("Uploading marker and video...")
 
     const formData = new FormData(event.currentTarget)
 
     try {
-      // Step 1: Upload the marker
-      setUploadProgress("Uploading marker and video...")
-
       const response = await fetch("/api/markers", {
         method: "POST",
         body: formData,
@@ -149,39 +97,23 @@ export default function AdminDashboard() {
           const data = await response.json();
           message = data.error || message;
         } else {
-          // Fallback for HTML or plain text error responses
           message = await response.text();
         }
         throw new Error(message);
       }
 
       const data = await response.json()
-
-      // Step 2: Reload markers
       setUploadProgress("Refreshing content...")
       await loadMarkers()
-
-      if (markers.length > 0) {
-        // Step 3: Generate targets after upload
-        console.log("Generating targets after upload...")
-        await generateTargetsAfterUpload()
-      }
-
       setSuccess(`Marker "${data.title}" uploaded successfully!`)
       ;(event.target as HTMLFormElement).reset()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed")
       console.error("Upload error:", err)
-      setUploadProgress("")
     } finally {
       setUploading(false)
+      setUploadProgress("")
     }
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    setSuccess("Copied to clipboard!")
-    setTimeout(() => setSuccess(null), 2000)
   }
 
   const handleDelete = async (id: string, title: string) => {
@@ -201,13 +133,11 @@ export default function AdminDashboard() {
 
       setSuccess(`Marker "${title}" deleted successfully!`)
       await loadMarkers()
-
     } catch (err) {
       setError(err instanceof Error ? err.message : "Delete failed")
       console.error("Delete error:", err)
     }
   }
-
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -239,86 +169,11 @@ export default function AdminDashboard() {
           </Alert>
         )}
 
-        {/* Upload Progress */}
         {uploadProgress && (
           <Alert className="mb-4 border-blue-200 bg-blue-50">
             <Loader className="w-4 h-4 animate-spin" />
             <AlertDescription className="text-blue-800">{uploadProgress}</AlertDescription>
           </Alert>
-        )}
-
-        {/* Target Generation Instructions - Only show after upload */}
-        {targetInstructions && (
-          <Card className="mb-8 border-blue-200 bg-blue-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-blue-800">
-                <Zap className="w-5 h-5" />
-                AR Targets Ready - Complete Setup
-              </CardTitle>
-              <CardDescription className="text-blue-600">
-                Your marker was uploaded successfully! Complete the AR setup by following these steps:
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-white p-4 rounded-lg border">
-                <h4 className="font-semibold mb-2">Quick Setup Steps:</h4>
-                <ol className="list-decimal list-inside space-y-2 text-sm">
-                  {targetInstructions.steps.map((step: string, index: number) => (
-                    <li key={index}>{step}</li>
-                  ))}
-                </ol>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-lg border">
-                  <h4 className="font-semibold mb-2">Your Marker Image:</h4>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Input value={targetInstructions.markerImageUrl} readOnly className="text-xs" />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => copyToClipboard(targetInstructions.markerImageUrl)}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <Button
-                    onClick={() => window.open(targetInstructions.markerImageUrl, "_blank")}
-                    size="sm"
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    View Image
-                  </Button>
-                </div>
-
-                <div className="bg-white p-4 rounded-lg border">
-                  <h4 className="font-semibold mb-2">MindAR Compiler:</h4>
-                  <Button
-                    onClick={() => window.open(targetInstructions.compilerUrl, "_blank")}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Open Compiler Tool
-                  </Button>
-                </div>
-              </div>
-
-              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                <p className="text-sm text-green-800">
-                  <strong>Next:</strong> After downloading the targets.mind file from the compiler, upload it to your
-                  Supabase storage bucket named "targets" with the filename "targets.mind". Your AR experience will then
-                  be ready to use!
-                </p>
-              </div>
-
-              <Button onClick={() => setTargetInstructions(null)} variant="outline" className="w-full">
-                Got it, hide instructions
-              </Button>
-            </CardContent>
-          </Card>
         )}
 
         {/* Upload Form */}
@@ -329,7 +184,7 @@ export default function AdminDashboard() {
               Add New AR Content
             </CardTitle>
             <CardDescription>
-              Upload a marker image and video - AR targets will be generated automatically
+              Upload a marker image and video
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -347,10 +202,6 @@ export default function AdminDashboard() {
                   <Label htmlFor="video">Video File</Label>
                   <Input id="video" name="video" type="file" accept="video/*" />
                 </div>
-                {/* <div>
-                  <Label htmlFor="videoUrl">Or Video URL</Label>
-                  <Input id="videoUrl" name="videoUrl" placeholder="https://example.com/video.mp4" />
-                </div> */}
               </div>
 
               <Button type="submit" disabled={uploading} className="w-full">
@@ -360,15 +211,9 @@ export default function AdminDashboard() {
                     {uploadProgress || "Processing..."}
                   </div>
                 ) : (
-                  "Add AR Content & Generate Targets"
+                  "Add AR Content"
                 )}
               </Button>
-
-              {uploading && (
-                <div className="text-sm text-gray-600 text-center">
-                  This process includes uploading your content and preparing AR targets automatically
-                </div>
-              )}
             </form>
           </CardContent>
         </Card>
@@ -426,9 +271,6 @@ export default function AdminDashboard() {
                 <Upload className="w-16 h-16 mx-auto mb-4 text-gray-400" />
                 <h3 className="text-lg font-semibold mb-2">No AR Content Yet</h3>
                 <p className="text-gray-600 mb-4">Upload your first marker image and video to get started.</p>
-                <p className="text-sm text-gray-500">
-                  AR targets will be generated automatically when you add content.
-                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -436,7 +278,7 @@ export default function AdminDashboard() {
                   <Card key={marker.id} className="overflow-hidden">
                     <div className="aspect-video bg-gray-100">
                       <img
-                        src={marker.markerImageUrl || "/placeholder.svg"}
+                        src={`${R2_STORAGE_URL}/${marker.markerImagePath}`}
                         alt={marker.title}
                         className="w-full h-full object-cover"
                       />
@@ -463,15 +305,21 @@ export default function AdminDashboard() {
                               <div>
                                 <h4 className="font-medium mb-2">Marker Image:</h4>
                                 <img
-                                  src={marker.markerImageUrl || "/placeholder.svg"}
+                                  src={`${R2_STORAGE_URL}/${marker.markerImagePath}`}
                                   alt={marker.title}
                                   className="w-full max-w-md mx-auto rounded-lg border"
                                 />
                               </div>
-                              <div>
-                                <h4 className="font-medium mb-2">Video Content:</h4>
-                                <video src={marker.videoUrl} controls className="w-full max-w-md mx-auto rounded-lg" />
-                              </div>
+                              {marker.videoPath && (
+                                <div>
+                                  <h4 className="font-medium mb-2">Video Content:</h4>
+                                  <video 
+                                    src={`${R2_STORAGE_URL}/${marker.videoPath}`} 
+                                    controls 
+                                    className="w-full max-w-md mx-auto rounded-lg" 
+                                  />
+                                </div>
+                              )}
                             </div>
                           </DialogContent>
                         </Dialog>
@@ -489,4 +337,12 @@ export default function AdminDashboard() {
       </div>
     </div>
   )
+}
+
+interface MarkerWithUrls {
+  id: string
+  title: string
+  markerImagePath: string
+  videoPath?: string
+  createdAt: string
 }

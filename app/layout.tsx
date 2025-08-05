@@ -1,26 +1,25 @@
 // app/layout.tsx
-import type React from "react";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { Providers } from "@/components/Providers";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import SessionProvider from '@/components/Providers';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "WebAR Experience",
-  description: "Scan markers to experience augmented reality content",
+  title: 'WebAR Experience',
+  description: 'Scan markers to experience augmented reality content',
   viewport: {
-    width: "device-width",
+    width: 'device-width',
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
-    viewportFit: "cover",
+    viewportFit: 'cover',
   },
   other: {
-    "mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'black-translucent',
   },
 };
 
@@ -45,11 +44,10 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
       </head>
       <body className={inter.className}>
-        {/* Wrap children in our client‐side Providers: */}
-        <Providers>{children}</Providers>
+        <SessionProvider>
+          {children}
+        </SessionProvider>
       </body>
-      {/* <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script> */}
     </html>
   );
 }

@@ -1,9 +1,16 @@
-// app/components/Providers.tsx
-"use client";
+// components/Providers.tsx (rename from Provider.tsx)
+'use client';
 
-import { SessionProvider } from "next-auth/react";
-import React from "react";
+import { SessionProvider as NextAuthSessionProvider } from 'next-auth/react';
 
-export function Providers({ children }: { children: React.ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>;
+export default function SessionProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <NextAuthSessionProvider>
+      {children}
+    </NextAuthSessionProvider>
+  );
 }

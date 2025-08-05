@@ -1,9 +1,11 @@
-// lib\auth-options.ts
-import type { AuthOptions } from "next-auth";
+// app/api/auth/[...nextauth]/route.ts
+import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { comparePasswords, hashPassword } from "./auth-utils";
+import { comparePasswords } from "@/lib/auth-utils";
 
-export const getAuthOptions = (): AuthOptions => ({
+export const runtime = "edge";
+
+const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Admin Login",
@@ -31,28 +33,10 @@ export const getAuthOptions = (): AuthOptions => ({
 
         // Compare username
         if (credentials.username !== adminUser) {
-          console.error("Invalid username");
           return null;
         }
 
         try {
-          // Compute password hash
-          const hashedPassword = await hashPassword(
-            credentials.password,
-            storedSalt,
-            storedIterations
-          );
-
-          // Convert to ArrayBuffer for constant-time comparison
-          const encoder = new TextEncoder();
-          const storedBuffer = encoder.encode(storedHash);
-          const computedBuffer = encoder.encode(hashedPassword);
-          
-          // Compare using constant-time method
-          if (storedBuffer.length !== computedBuffer.length) {
-            return null;
-          }
-          
           const valid = await comparePasswords(
             credentials.password,
             storedHash,
@@ -60,7 +44,7 @@ export const getAuthOptions = (): AuthOptions => ({
             storedIterations
           );
 
-          return valid ? { id: "1", name: adminUser } : null;
+          return valid ? { id: "1", name: adminUser, email: adminUser } : null;
         } catch (error) {
           console.error("Authentication error:", error);
           return null;
@@ -70,13 +54,35 @@ export const getAuthOptions = (): AuthOptions => ({
   ],
   pages: {
     signIn: "/admin",
-    signOut: "/admin",
-    error: "/admin?error=",
+    error: "/admin",
   },
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
     maxAge: 30 * 60, // 30 minutes
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.name = user.name;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user = {
+          id: token.id as string,
+          name: token.name as string,
+          email: token.email as string,
+        };
+      }
+      return session;
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
-});
+};
+
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };
